@@ -19,7 +19,7 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${process.env.GLM_API_KEY}`,
       },
       body: JSON.stringify({
-        model: process.env.GLM_MODEL_ID || "glm-4",
+        model: process.env.GLM_MODEL_ID || "glm-4.5-air",
         messages: openAiMessages,
         max_tokens,
       }),
