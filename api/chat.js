@@ -1,42 +1,52 @@
+import { Pinecone } from "@pinecone-database/pinecone";
+import Anthropic from "@anthropic-ai/sdk";
+
+const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { system, messages, max_tokens = 1000 } = req.body;
-
-  // Convert Anthropic-style {role, content} messages to OpenAI format
-  const openAiMessages = [
-    { role: "system", content: system },
-    ...messages.map((m) => ({ role: m.role, content: m.content })),
-  ];
+  const { userMessage, messages, system, max_tokens = 1000 } = req.body;
 
   try {
-    const response = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.GLM_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: process.env.GLM_MODEL_ID || "glm-4.5-air",
-        messages: openAiMessages,
-        max_tokens,
-      }),
+    // 1. Embed the user query
+    const embedResponse = await pc.inference.embed(
+      "multilingual-e5-large",
+      [userMessage],
+      { inputType: "query", truncate: "END" }
+    );
+    const queryVector = embedResponse[0].values;
+
+    // 2. Search Pinecone
+    const index = pc.index(process.env.PINECONE_INDEX_NAME || "bandhan-kb");
+    const searchResult = await index.namespace("bandhan-kb").query({
+      vector: queryVector,
+      topK: 5,
+      includeMetadata: true,
     });
 
-    const data = await response.json();
+    // 3. Build context
+    const ragContext = searchResult.matches
+      .filter((m) => m.score > 0.3)
+      .map((m) => m.metadata.text)
+      .join("\n\n---\n\n");
 
-    if (!response.ok) {
-      console.error("GLM error:", data);
-      return res.status(response.status).json({ error: data.error?.message || "GLM API error" });
-    }
+    // 4. Call Claude Haiku
+    const augmentedSystem = ragContext
+      ? system + "\n\n## RELEVANT KNOWLEDGE BASE CONTEXT\n" + ragContext
+      : system;
 
-    // Return in Anthropic-compatible shape so the frontend works unchanged
-    const text = data.choices?.[0]?.message?.content || "";
-    res.status(200).json({ content: [{ type: "text", text }] });
+    const response = await anthropic.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens,
+      system: augmentedSystem,
+      messages,
+    });
+
+    res.status(200).json({ content: response.content });
   } catch (err) {
-    console.error("Handler error:", err);
+    console.error("Chat error:", err);
     res.status(500).json({ error: err.message || "Internal server error" });
   }
 }
