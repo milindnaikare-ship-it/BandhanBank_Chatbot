@@ -10,29 +10,21 @@ export default async function handler(req, res) {
   const { userMessage, messages, system, max_tokens = 1000 } = req.body;
 
   try {
-    // 1. Embed the user query
-    const embedResponse = await pc.inference.embed(
-      "multilingual-e5-large",
-      [userMessage],
-      { inputType: "query", truncate: "END" }
-    );
-    const queryVector = embedResponse[0].values;
-
-    // 2. Search Pinecone
+    // 1. Search Pinecone using integrated inference (index embeds the query automatically)
     const index = pc.index(process.env.PINECONE_INDEX_NAME || "bandhan-kb");
-    const searchResult = await index.namespace("bandhan-kb").query({
-      vector: queryVector,
-      topK: 5,
-      includeMetadata: true,
+    const searchResult = await index.namespace("bandhan-kb").searchRecords({
+      query: { inputs: { text: userMessage }, topK: 5 },
+      fields: ["text", "section"],
     });
 
-    // 3. Build context
-    const ragContext = searchResult.matches
-      .filter((m) => m.score > 0.3)
-      .map((m) => m.metadata.text)
+    // 2. Build context from retrieved chunks
+    const ragContext = (searchResult.result?.hits || [])
+      .filter((h) => h._score > 0.3)
+      .map((h) => h.fields?.text)
+      .filter(Boolean)
       .join("\n\n---\n\n");
 
-    // 4. Call Claude Haiku
+    // 3. Call Claude Haiku with augmented system prompt
     const augmentedSystem = ragContext
       ? system + "\n\n## RELEVANT KNOWLEDGE BASE CONTEXT\n" + ragContext
       : system;

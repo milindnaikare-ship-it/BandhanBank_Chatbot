@@ -50,23 +50,18 @@ async function main() {
   const chunks = chunkMarkdown(md);
   console.log(`Chunked into ${chunks.length} pieces`);
 
-  const texts = chunks.map((c) => c.text);
-  const embeddings = await pc.inference.embed("multilingual-e5-large", texts, {
-    inputType: "passage",
-    truncate: "END",
-  });
-
-  const vectors = chunks.map((chunk, i) => ({
+  const records = chunks.map((chunk, i) => ({
     id: `chunk-${i}`,
-    values: embeddings[i].values,
-    metadata: { text: chunk.text, section: chunk.header },
+    text: chunk.text,
+    section: chunk.header,
   }));
 
   const index = pc.index(indexName);
-  // Upsert in batches of 100
-  for (let i = 0; i < vectors.length; i += 100) {
-    await index.namespace("bandhan-kb").upsert(vectors.slice(i, i + 100));
-    console.log(`Upserted ${Math.min(i + 100, vectors.length)}/${vectors.length}`);
+  // Upsert in batches of 96
+  for (let i = 0; i < records.length; i += 96) {
+    const batch = records.slice(i, i + 96);
+    await index.namespace("bandhan-kb").upsertRecords({ records: batch });
+    console.log(`Upserted ${Math.min(i + 96, records.length)}/${records.length}`);
   }
   console.log("Ingestion complete!");
 }
