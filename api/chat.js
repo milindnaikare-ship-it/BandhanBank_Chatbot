@@ -1,14 +1,3 @@
-import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
-
-const client = new BedrockRuntimeClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    ...(process.env.AWS_SESSION_TOKEN && { sessionToken: process.env.AWS_SESSION_TOKEN }),
-  },
-});
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -16,27 +5,38 @@ export default async function handler(req, res) {
 
   const { system, messages, max_tokens = 1000 } = req.body;
 
-  try {
-    const payload = {
-      anthropic_version: "bedrock-2023-05-31",
-      max_tokens,
-      system,
-      messages,
-    };
+  // Convert Anthropic-style {role, content} messages to OpenAI format
+  const openAiMessages = [
+    { role: "system", content: system },
+    ...messages.map((m) => ({ role: m.role, content: m.content })),
+  ];
 
-    const command = new InvokeModelCommand({
-      modelId: process.env.BEDROCK_MODEL_ID || "anthropic.claude-3-5-sonnet-20241022-v2:0",
-      contentType: "application/json",
-      accept: "application/json",
-      body: JSON.stringify(payload),
+  try {
+    const response = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.GLM_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: process.env.GLM_MODEL_ID || "glm-4-flash",
+        messages: openAiMessages,
+        max_tokens,
+      }),
     });
 
-    const response = await client.send(command);
-    const result = JSON.parse(new TextDecoder().decode(response.body));
+    const data = await response.json();
 
-    res.status(200).json(result);
+    if (!response.ok) {
+      console.error("GLM error:", data);
+      return res.status(response.status).json({ error: data.error?.message || "GLM API error" });
+    }
+
+    // Return in Anthropic-compatible shape so the frontend works unchanged
+    const text = data.choices?.[0]?.message?.content || "";
+    res.status(200).json({ content: [{ type: "text", text }] });
   } catch (err) {
-    console.error("Bedrock error:", err);
-    res.status(500).json({ error: err.message || "Bedrock invocation failed" });
+    console.error("Handler error:", err);
+    res.status(500).json({ error: err.message || "Internal server error" });
   }
 }
