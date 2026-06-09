@@ -64,7 +64,7 @@ const CHIPS_AUTH = [
   "Block my debit card",
 ];
 
-export default function BandhanChatbotDemo() {
+export default function BandhanChatbotDemo({ embedded = false }) {
   const [mode, setMode] = useState(null);
   const [authStep, setAuthStep] = useState("mobile");
   const [mobile, setMobile] = useState("");
@@ -138,7 +138,7 @@ export default function BandhanChatbotDemo() {
   const chips = mode === "auth" ? CHIPS_AUTH : CHIPS_VISITOR;
 
   return (
-    <div style={S.page}>
+    <div style={{ ...S.page, ...(embedded ? { minHeight: 0, height: "100%", overflow: "hidden" } : {}) }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Karla:wght@400;500;700&display=swap');
         @keyframes rise { from { opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }

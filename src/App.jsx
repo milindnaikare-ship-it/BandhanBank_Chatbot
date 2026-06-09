@@ -1,4 +1,4 @@
-import BandhanChatbotDemo from './BandhanChatbotDemo'
+import BandhanLandingPage from './BandhanLandingPage'
 export default function App() {
-  return <BandhanChatbotDemo />
+  return <BandhanLandingPage />
 }
