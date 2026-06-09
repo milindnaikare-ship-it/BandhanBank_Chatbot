@@ -23,7 +23,7 @@ export default function BandhanLandingPage() {
         .chat-fab { animation: chatPulse 2s infinite; }
         .chat-fab:hover { transform: scale(1.08); animation: none; box-shadow: 0 8px 32px rgba(185,18,48,0.4); }
         .chat-popup {
-          position: fixed; bottom: 100px; right: 24px; width: 420px; height: 620px;
+          position: fixed; bottom: 100px; right: 24px; width: 440px; height: 82vh; max-height: 800px;
           background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
           overflow: hidden; z-index: 1000; display: flex; flex-direction: column;
           transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
