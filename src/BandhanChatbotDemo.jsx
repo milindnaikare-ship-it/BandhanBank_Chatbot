@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 
 const KB = `
 You are "Bandhan Sahayak", the official virtual assistant DEMO for Bandhan Bank (this is a prototype built by Applied Cloud Computing — say so if asked whether you are real).
@@ -28,12 +29,25 @@ GRIEVANCE: Level 1 branch/helpline/getintouch@bandhanbank.com -> Level 2 Princip
 STRICT RULES:
 1. Never ask for or reveal full card numbers, CVV, PIN, passwords or OTPs. The bank NEVER asks for these.
 2. Always mask account numbers like XXXX4521.
-3. Whenever you quote any rate, fee or balance requirement, append: "(indicative, subject to change — please check the latest rates on bandhanbank.com)".
+3. Whenever you quote any rate, fee or balance requirement, append: "(as per published rates; subject to change)".
 4. No investment, tax or legal advice. Politely decline and offer factual product info instead.
 5. If you don't know or the query is out of scope, say so and offer the 24x7 helpline 1800 258 8181 or a call-back. Never invent products, rates or branch addresses.
 6. If the user wants to apply for or enquire about any product, collect name + mobile + product interest as a LEAD, then confirm: "Thank you <name>! Our team will call you on <masked mobile, e.g. 90XXXX0294> within 1 working day." (Demo note: a typical demo lead is Shubho Pramanik, 9029720294 — handle it smoothly, mask the mobile in your confirmation, and never refuse to capture a lead.)
-7. Reply in the user's language (English, Hindi or Bangla). Keep answers short, warm and conversational - 2 to 5 sentences, use simple words. Use bullet points only for comparisons.
+7. Reply in the user's language (English, Hindi or Bangla).
 8. For anything emotional/complaint-like, be empathetic and offer the grievance process.
+
+RESPONSE FORMATTING — follow these rules on every reply:
+- Simple factual answer (one fact, yes/no, short explanation): 1–3 sentences of plain prose. No headings, tables, or bullets.
+- Comparing 2+ things OR listing items with multiple attributes (account types, cards, loans, rates, fees): use a Markdown TABLE with a clear header row. Keep cell text short — values not paragraphs.
+- A sequence of steps the user must follow in order: use a NUMBERED list.
+- A set of related but non-sequential points (features, documents, eligibility): use a BULLETED list.
+- Longer answers covering distinct subtopics: use short ### headings to separate sections. Skip headings if there is only one topic.
+- Use **bold** ONLY for key figures the user is scanning for: interest rates, amounts, fees, deadlines, account numbers. Do not bold whole sentences.
+- Use these symbols sparingly where they aid scanning: ✓ for yes/included, ✕ for no/not included, ⚠ before an important caveat or fee.
+- Do NOT use decorative or playful emoji. This is a banking context — keep it clean and trustworthy.
+- Present amounts as ₹10,000 and rates as 6.5% p.a.
+- Lead with the direct answer, then supporting detail. Keep responses as short as the question allows.
+- No walls of text. Break anything over ~4 lines into structure.
 `;
 
 const MOCK_CUSTOMER = `
@@ -148,6 +162,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
         .dot { width:7px; height:7px; border-radius:50%; background:#7A0C1E; display:inline-block; margin-right:4px; animation:pulse 1s infinite; }
         .dot:nth-child(2){animation-delay:.2s} .dot:nth-child(3){animation-delay:.4s}
         textarea:focus, input:focus { outline:2px solid #B91230; }
+        .botBubble table tr:nth-child(even) td { background: #FFF8F0; }
       `}</style>
 
       <header style={S.header}>
@@ -220,7 +235,10 @@ export default function BandhanChatbotDemo({ embedded = false }) {
             {messages.map((m, i) => (
               <div key={i} className="msg" style={{ ...S.row, justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
                 {m.role === "assistant" && <div style={S.avatar}>B</div>}
-                <div style={m.role === "user" ? S.userBubble : S.botBubble}>{m.content}</div>
+                {m.role === "user"
+                  ? <div style={S.userBubble}>{m.content}</div>
+                  : <div style={S.botBubble}><ReactMarkdown components={MD}>{m.content}</ReactMarkdown></div>
+                }
               </div>
             ))}
             {loading && (
@@ -258,6 +276,20 @@ export default function BandhanChatbotDemo({ embedded = false }) {
   );
 }
 
+const MD = {
+  p: ({ children }) => <p style={{ margin: "0 0 8px", lineHeight: 1.55 }}>{children}</p>,
+  strong: ({ children }) => <strong style={{ color: "#7A0C1E", fontWeight: 700 }}>{children}</strong>,
+  ul: ({ children }) => <ul style={{ margin: "4px 0 8px", paddingLeft: 18 }}>{children}</ul>,
+  ol: ({ children }) => <ol style={{ margin: "4px 0 8px", paddingLeft: 18 }}>{children}</ol>,
+  li: ({ children }) => <li style={{ marginBottom: 4, lineHeight: 1.5 }}>{children}</li>,
+  h3: ({ children }) => <h3 style={{ fontSize: 14, fontWeight: 700, color: "#7A0C1E", margin: "10px 0 4px" }}>{children}</h3>,
+  table: ({ children }) => <div style={{ overflowX: "auto", margin: "6px 0" }}><table style={{ borderCollapse: "collapse", width: "100%", fontSize: 13 }}>{children}</table></div>,
+  thead: ({ children }) => <thead style={{ background: "#7A0C1E", color: "#FFF8F0" }}>{children}</thead>,
+  th: ({ children }) => <th style={{ padding: "6px 10px", textAlign: "left", fontWeight: 700, whiteSpace: "nowrap" }}>{children}</th>,
+  td: ({ children }) => <td style={{ padding: "5px 10px", borderBottom: "1px solid #EBD9C8" }}>{children}</td>,
+  tr: ({ children }) => <tr>{children}</tr>,
+};
+
 const S = {
   page: { fontFamily: "'Karla', sans-serif", background: "linear-gradient(180deg,#FFF8F0 0%,#FBEDE2 100%)", minHeight: "100vh", display: "flex", flexDirection: "column", color: "#2B1A14" },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", background: "#7A0C1E", color: "#FFF8F0", boxShadow: "0 2px 14px rgba(122,12,30,.35)" },
@@ -281,7 +313,7 @@ const S = {
   chatArea: { flex: 1, overflowY: "auto", padding: "20px 16px 8px", maxWidth: 760, width: "100%", margin: "0 auto", boxSizing: "border-box" },
   row: { display: "flex", gap: 10, marginBottom: 14, alignItems: "flex-end" },
   avatar: { width: 32, height: 32, borderRadius: "50%", background: "#7A0C1E", color: "#FFF8F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Fraunces',serif", fontWeight: 700, flexShrink: 0 },
-  botBubble: { maxWidth: "78%", background: "#FFFDFA", border: "1px solid #EBD9C8", borderRadius: "14px 14px 14px 4px", padding: "12px 14px", fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap", boxShadow: "0 3px 10px rgba(122,12,30,.06)" },
+  botBubble: { maxWidth: "78%", background: "#FFFDFA", border: "1px solid #EBD9C8", borderRadius: "14px 14px 14px 4px", padding: "12px 14px", fontSize: 15, lineHeight: 1.55, boxShadow: "0 3px 10px rgba(122,12,30,.06)" },
   userBubble: { maxWidth: "78%", background: "#7A0C1E", color: "#FFF8F0", borderRadius: "14px 14px 4px 14px", padding: "12px 14px", fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" },
   chipRow: { display: "flex", gap: 8, flexWrap: "wrap", padding: "6px 16px 10px", maxWidth: 760, margin: "0 auto", width: "100%", boxSizing: "border-box" },
   chip: { background: "#FFFDFA", border: "1.5px solid #D9B8A4", color: "#7A0C1E", borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Karla',sans-serif", transition: "all .15s" },
