@@ -12,6 +12,10 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
+    "@fortawesome/free-brands-svg-icons": "^7.2.0",
+    "@fortawesome/free-regular-svg-icons": "^7.2.0",
+    "@fortawesome/free-solid-svg-icons": "^7.2.0",
+    "@fortawesome/react-fontawesome": "^3.3.1",
     "@pinecone-database/pinecone": "^7.2.0",
     "dotenv": "^17.4.2",
     "react": "^19.2.6",

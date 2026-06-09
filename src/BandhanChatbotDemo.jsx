@@ -154,7 +154,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
   return (
     <div style={{ ...S.page, ...(embedded ? { minHeight: 0, height: "100%", overflow: "hidden" } : {}) }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Karla:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=Roboto:wght@400;500;700&display=swap');
         @keyframes rise { from { opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
         @keyframes pulse { 0%,100%{opacity:.35} 50%{opacity:1} }
         .msg { animation: rise .35s ease both; }
@@ -291,33 +291,33 @@ const MD = {
 };
 
 const S = {
-  page: { fontFamily: "'Karla', sans-serif", background: "linear-gradient(180deg,#FFF8F0 0%,#FBEDE2 100%)", minHeight: "100vh", display: "flex", flexDirection: "column", color: "#2B1A14" },
+  page: { fontFamily: "'Roboto', sans-serif", background: "linear-gradient(180deg,#FFF8F0 0%,#FBEDE2 100%)", minHeight: "100vh", display: "flex", flexDirection: "column", color: "#2B1A14" },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", background: "#7A0C1E", color: "#FFF8F0", boxShadow: "0 2px 14px rgba(122,12,30,.35)" },
   logoBox: { display: "flex", alignItems: "center", gap: 12 },
-  logoMark: { width: 42, height: 42, borderRadius: 10, background: "#FFF8F0", color: "#7A0C1E", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Fraunces', serif", fontSize: 24, fontWeight: 700 },
-  bankName: { fontFamily: "'Fraunces', serif", fontSize: 20, fontWeight: 700, letterSpacing: ".3px" },
+  logoMark: { width: 42, height: 42, borderRadius: 10, background: "#FFF8F0", color: "#7A0C1E", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Roboto Slab', serif", fontSize: 24, fontWeight: 700 },
+  bankName: { fontFamily: "'Roboto Slab', serif", fontSize: 20, fontWeight: 700, letterSpacing: ".3px" },
   tagline: { fontSize: 12, opacity: 0.85 },
-  exitBtn: { background: "transparent", color: "#FFF8F0", border: "1px solid rgba(255,248,240,.5)", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontFamily: "'Karla',sans-serif", fontWeight: 700 },
+  exitBtn: { background: "transparent", color: "#FFF8F0", border: "1px solid rgba(255,248,240,.5)", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontFamily: "'Roboto',sans-serif", fontWeight: 700 },
   gate: { margin: "auto", textAlign: "center", padding: 24, maxWidth: 640 },
-  gateTitle: { fontFamily: "'Fraunces', serif", fontSize: 30, margin: "0 0 8px", color: "#7A0C1E" },
+  gateTitle: { fontFamily: "'Roboto Slab', serif", fontSize: 30, margin: "0 0 8px", color: "#7A0C1E" },
   gateSub: { color: "#6B5247", marginBottom: 28 },
   gateCards: { display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" },
-  gateCard: { display: "flex", flexDirection: "column", gap: 6, alignItems: "center", width: 240, padding: "26px 18px", background: "#FFFDFA", border: "1.5px solid #E8D5C4", borderRadius: 16, cursor: "pointer", fontFamily: "'Karla',sans-serif", fontSize: 15, boxShadow: "0 8px 24px rgba(122,12,30,.08)" },
+  gateCard: { display: "flex", flexDirection: "column", gap: 6, alignItems: "center", width: 240, padding: "26px 18px", background: "#FFFDFA", border: "1.5px solid #E8D5C4", borderRadius: 16, cursor: "pointer", fontFamily: "'Roboto',sans-serif", fontSize: 15, boxShadow: "0 8px 24px rgba(122,12,30,.08)" },
   gateEmoji: { fontSize: 30 },
   gateDesc: { fontSize: 13, color: "#6B5247" },
   label: { display: "block", fontWeight: 700, fontSize: 14, margin: "14px 0 6px" },
-  input: { width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid #E8D5C4", fontSize: 16, fontFamily: "'Karla',sans-serif", background: "#FFFDFA", boxSizing: "border-box" },
-  primaryBtn: { marginTop: 14, width: "100%", padding: "12px 16px", borderRadius: 10, border: "none", background: "#B91230", color: "#FFF8F0", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "'Karla',sans-serif" },
-  linkBtn: { marginTop: 12, background: "none", border: "none", color: "#7A0C1E", cursor: "pointer", fontFamily: "'Karla',sans-serif", fontWeight: 700 },
+  input: { width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid #E8D5C4", fontSize: 16, fontFamily: "'Roboto',sans-serif", background: "#FFFDFA", boxSizing: "border-box" },
+  primaryBtn: { marginTop: 14, width: "100%", padding: "12px 16px", borderRadius: 10, border: "none", background: "#B91230", color: "#FFF8F0", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "'Roboto',sans-serif" },
+  linkBtn: { marginTop: 12, background: "none", border: "none", color: "#7A0C1E", cursor: "pointer", fontFamily: "'Roboto',sans-serif", fontWeight: 700 },
   error: { color: "#B91230", fontSize: 13, marginTop: 8 },
   chatArea: { flex: 1, overflowY: "auto", padding: "20px 16px 8px", maxWidth: 760, width: "100%", margin: "0 auto", boxSizing: "border-box" },
   row: { display: "flex", gap: 10, marginBottom: 14, alignItems: "flex-end" },
-  avatar: { width: 32, height: 32, borderRadius: "50%", background: "#7A0C1E", color: "#FFF8F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Fraunces',serif", fontWeight: 700, flexShrink: 0 },
+  avatar: { width: 32, height: 32, borderRadius: "50%", background: "#7A0C1E", color: "#FFF8F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Roboto Slab',serif", fontWeight: 700, flexShrink: 0 },
   botBubble: { maxWidth: "78%", background: "#FFFDFA", border: "1px solid #EBD9C8", borderRadius: "14px 14px 14px 4px", padding: "12px 14px", fontSize: 15, lineHeight: 1.55, boxShadow: "0 3px 10px rgba(122,12,30,.06)" },
   userBubble: { maxWidth: "78%", background: "#7A0C1E", color: "#FFF8F0", borderRadius: "14px 14px 4px 14px", padding: "12px 14px", fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" },
   chipRow: { display: "flex", gap: 8, flexWrap: "wrap", padding: "6px 16px 10px", maxWidth: 760, margin: "0 auto", width: "100%", boxSizing: "border-box" },
-  chip: { background: "#FFFDFA", border: "1.5px solid #D9B8A4", color: "#7A0C1E", borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Karla',sans-serif", transition: "all .15s" },
+  chip: { background: "#FFFDFA", border: "1.5px solid #D9B8A4", color: "#7A0C1E", borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Roboto',sans-serif", transition: "all .15s" },
   inputBar: { display: "flex", gap: 10, padding: "10px 16px", maxWidth: 760, margin: "0 auto", width: "100%", boxSizing: "border-box" },
-  textarea: { flex: 1, resize: "none", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #E8D5C4", fontSize: 15, fontFamily: "'Karla',sans-serif", background: "#FFFDFA" },
+  textarea: { flex: 1, resize: "none", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #E8D5C4", fontSize: 15, fontFamily: "'Roboto',sans-serif", background: "#FFFDFA" },
   disclaimer: { textAlign: "center", fontSize: 11.5, color: "#8A6F60", padding: "4px 16px 14px", maxWidth: 760, margin: "0 auto" },
 };
