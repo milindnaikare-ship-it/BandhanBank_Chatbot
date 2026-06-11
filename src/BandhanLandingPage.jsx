@@ -6,7 +6,7 @@ import {
   faArrowTrendUp, faGlobe, faPiggyBank, faPlane, faMoneyBillTransfer,
   faFileInvoiceDollar, faChildReaching, faMobileScreen, faShieldHalved,
   faGraduationCap, faHeartPulse, faHandshake, faLightbulb, faArrowRight,
-  faLock, faRightToBracket, faBars,
+  faLock, faRightToBracket,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faFacebook, faXTwitter, faYoutube, faLinkedin, faInstagram,

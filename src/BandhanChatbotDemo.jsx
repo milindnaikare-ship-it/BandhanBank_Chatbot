@@ -1,5 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faMicrophone, faVolumeHigh, faVolumeXmark, faBan, faStop,
+  faThumbsUp, faThumbsDown, faPaperPlane, faHeadset, faPhone,
+} from "@fortawesome/free-solid-svg-icons";
+
+const ANON_NOTE = "\nANONYMOUS SESSION — no customer data may be shared. If asked for balances or personal details, explain they need to verify with their registered mobile (offer the 'Existing customer' login).";
+const REP_NUMBER = "+919920570592";
+const REP_NUMBER_DISPLAY = "+91 99205 70592";
 
 const KB = `
 You are "Bandhan Sahayak", the official virtual assistant DEMO for Bandhan Bank (this is a prototype built by Applied Cloud Computing — say so if asked whether you are real).
@@ -33,7 +42,7 @@ STRICT RULES:
 4. No investment, tax or legal advice. Politely decline and offer factual product info instead.
 5. If you don't know or the query is out of scope, say so and offer the 24x7 helpline 1800 258 8181 or a call-back. Never invent products, rates or branch addresses.
 6. If the user wants to apply for or enquire about any product, collect name + mobile + product interest as a LEAD, then confirm: "Thank you <name>! Our team will call you on <masked mobile, e.g. 90XXXX0294> within 1 working day." (Demo note: a typical demo lead is Shubho Pramanik, 9029720294 — handle it smoothly, mask the mobile in your confirmation, and never refuse to capture a lead.)
-7. Reply in the user's language (English, Hindi or Bangla).
+7. LANGUAGE: Detect the language of the user's message and ALWAYS reply in that SAME language. Supported languages: English, Hindi (हिंदी), Bengali (বাংলা), Marathi (मराठी), and Hinglish (Hindi written in Roman/English script). If the user writes in Hinglish, reply in Hinglish (Romanized). If they mix languages, mirror their style. Keep banking terms clear and answers short, warm and conversational.
 8. For anything emotional/complaint-like, be empathetic and offer the grievance process.
 
 RESPONSE FORMATTING — follow these rules on every reply:
@@ -78,6 +87,26 @@ const CHIPS_AUTH = [
   "Block my debit card",
 ];
 
+const STT_SUPPORTED = typeof window !== "undefined" && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+const TTS_SUPPORTED = typeof window !== "undefined" && "speechSynthesis" in window;
+
+// Pick a TTS language from the script of the reply text (multilingual output)
+const detectTtsLang = (text) => {
+  if (/[ঀ-৿]/.test(text)) return "bn-IN";   // Bengali script
+  if (/[ऀ-ॿ]/.test(text)) return "hi-IN";   // Devanagari (Hindi / Marathi)
+  return "en-IN";                                       // Latin (English / Hinglish)
+};
+
+// Strip markdown so speech is clean
+const stripForSpeech = (text) =>
+  text
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+    .replace(/[#*_`>|~]/g, " ")
+    .replace(/\|/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
 export default function BandhanChatbotDemo({ embedded = false }) {
   const [mode, setMode] = useState(null);
   const [authStep, setAuthStep] = useState("mobile");
@@ -87,17 +116,114 @@ export default function BandhanChatbotDemo({ embedded = false }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Voice: voiceMode = "on" (auto-speak) | "muted" (no auto-speak, manual replay ok) | "off" (fully disabled)
+  const [voiceMode, setVoiceMode] = useState("on");
+  const [listening, setListening] = useState(false);
+  const [speakingIdx, setSpeakingIdx] = useState(null);
+
   const endRef = useRef(null);
+  const voiceModeRef = useRef("on");
+  const voicesRef = useRef([]);
+  const recognitionRef = useRef(null);
+  const downCountRef = useRef(0); // consecutive thumbs-down counter
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading, mode, authStep]);
 
+  // Preload TTS voices
+  useEffect(() => {
+    if (!TTS_SUPPORTED) return;
+    const load = () => { voicesRef.current = window.speechSynthesis.getVoices(); };
+    load();
+    window.speechSynthesis.onvoiceschanged = load;
+    return () => { try { window.speechSynthesis.onvoiceschanged = null; window.speechSynthesis.cancel(); } catch { /* noop */ } };
+  }, []);
+
+  // ---- Text to speech ----
+  const stopSpeaking = () => { try { window.speechSynthesis?.cancel(); } catch { /* noop */ } setSpeakingIdx(null); };
+
+  const speak = (text, idx) => {
+    if (!TTS_SUPPORTED || voiceModeRef.current === "off") return;
+    const clean = stripForSpeech(text);
+    if (!clean) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(clean);
+      const tl = detectTtsLang(text);
+      u.lang = tl;
+      const vs = voicesRef.current.length ? voicesRef.current : window.speechSynthesis.getVoices();
+      const match = vs.find((v) => v.lang === tl) || vs.find((v) => v.lang && v.lang.startsWith(tl.split("-")[0]));
+      if (match) u.voice = match;
+      u.onend = () => setSpeakingIdx((s) => (s === idx ? null : s));
+      u.onerror = () => setSpeakingIdx((s) => (s === idx ? null : s));
+      setSpeakingIdx(idx);
+      window.speechSynthesis.speak(u);
+    } catch { /* noop */ }
+  };
+
+  // ---- Speech to text (Indian English) ----
+  const stopListening = () => { try { recognitionRef.current?.stop(); } catch { /* noop */ } setListening(false); };
+
+  const startListening = () => {
+    if (!STT_SUPPORTED || voiceModeRef.current === "off" || loading) return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new SR();
+    rec.lang = "en-IN";
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.maxAlternatives = 1;
+    let finalText = "";
+    rec.onresult = (e) => {
+      let interim = "";
+      finalText = "";
+      for (let i = 0; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+      setInput((finalText || interim).trim());
+    };
+    rec.onerror = () => setListening(false);
+    rec.onend = () => {
+      setListening(false);
+      const t = finalText.trim();
+      if (t) { setInput(""); send(t); }
+    };
+    recognitionRef.current = rec;
+    stopSpeaking();
+    setListening(true);
+    try { rec.start(); } catch { setListening(false); }
+  };
+
+  const cycleVoice = () => {
+    const next = voiceMode === "on" ? "muted" : voiceMode === "muted" ? "off" : "on";
+    voiceModeRef.current = next;
+    setVoiceMode(next);
+    if (next !== "on") stopSpeaking();
+    if (next === "off") stopListening();
+  };
+
+  // ---- Feedback ----
+  const giveFeedback = (idx, value) => {
+    setMessages((prev) => {
+      if (prev[idx]?.feedback) return prev;
+      return prev.map((m, i) => (i === idx ? { ...m, feedback: value } : m));
+    });
+    if (value === "up") { downCountRef.current = 0; return; }
+    downCountRef.current += 1;
+    if (downCountRef.current >= 3) {
+      downCountRef.current = 0;
+      setMessages((prev) => [...prev, { role: "assistant", escalation: true }]);
+    }
+  };
+
   const greet = (m) => {
     const g =
       m === "auth"
-        ? "Welcome back, Mr. Milind Naikare! ✅ You're verified. I can help with your savings account balance, recent transactions, card services, deposits or complaints. What would you like to do?"
-        : "Namaskar! 🙏 I'm Bandhan Sahayak, your virtual assistant. I can tell you about our savings accounts, deposits, loans, cards and more — or help you find a branch. How may I help you today?";
+        ? "Welcome back, Mr. Milind Naikare! You're verified. I can help with your savings account balance, recent transactions, card services, deposits or complaints. What would you like to do?"
+        : "Namaskar! I'm Bandhan Sahayak, your virtual assistant. I can tell you about our savings accounts, deposits, loans, cards and more — or help you find a branch. How may I help you today?";
     setMessages([{ role: "assistant", content: g }]);
   };
 
@@ -120,11 +246,12 @@ export default function BandhanChatbotDemo({ embedded = false }) {
     const userText = (text ?? input).trim();
     if (!userText || loading) return;
     setInput("");
+    stopSpeaking();
     const newMsgs = [...messages, { role: "user", content: userText }];
     setMessages(newMsgs);
     setLoading(true);
     try {
-      const system = KB + (mode === "auth" ? MOCK_CUSTOMER : "\nANONYMOUS SESSION — no customer data may be shared. If asked for balances or personal details, explain they need to verify with their registered mobile (offer the 'Existing customer' login).");
+      const system = KB + (mode === "auth" ? MOCK_CUSTOMER : ANON_NOTE);
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -140,16 +267,27 @@ export default function BandhanChatbotDemo({ embedded = false }) {
         .filter((b) => b.type === "text")
         .map((b) => b.text)
         .join("\n") || "Sorry, I had trouble responding. Please try again, or call our 24x7 helpline 1800 258 8181.";
-      setMessages((m) => [...m, { role: "assistant", content: reply }]);
-    } catch (e) {
+      setMessages((m) => {
+        const arr = [...m, { role: "assistant", content: reply }];
+        if (voiceModeRef.current === "on" && TTS_SUPPORTED) setTimeout(() => speak(reply, arr.length - 1), 60);
+        return arr;
+      });
+    } catch {
       setMessages((m) => [...m, { role: "assistant", content: "I'm facing a technical issue right now. Please try again in a moment, or call 1800 258 8181 (24x7)." }]);
     } finally {
       setLoading(false);
     }
   };
 
-  const reset = () => { setMode(null); setAuthStep("mobile"); setMobile(""); setOtp(""); setMessages([]); setAuthError(""); };
+  const reset = () => {
+    stopSpeaking(); stopListening();
+    downCountRef.current = 0;
+    setMode(null); setAuthStep("mobile"); setMobile(""); setOtp(""); setMessages([]); setAuthError("");
+  };
   const chips = mode === "auth" ? CHIPS_AUTH : CHIPS_VISITOR;
+
+  const voiceIcon = voiceMode === "on" ? faVolumeHigh : voiceMode === "muted" ? faVolumeXmark : faBan;
+  const voiceTitle = voiceMode === "on" ? "Voice replies ON — tap to mute" : voiceMode === "muted" ? "Voice MUTED — tap to switch off" : "Voice OFF — tap to turn on";
 
   return (
     <div style={{ ...S.page, ...(embedded ? { minHeight: 0, height: "100%", overflow: "hidden" } : {}) }}>
@@ -157,12 +295,15 @@ export default function BandhanChatbotDemo({ embedded = false }) {
         @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=Roboto:wght@400;500;700&display=swap');
         @keyframes rise { from { opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
         @keyframes pulse { 0%,100%{opacity:.35} 50%{opacity:1} }
+        @keyframes micPulse { 0%,100%{box-shadow:0 0 0 0 rgba(185,18,48,.5)} 50%{box-shadow:0 0 0 9px rgba(185,18,48,0)} }
         .msg { animation: rise .35s ease both; }
         .chip:hover { background:#7A0C1E !important; color:#FFF8F0 !important; border-color:#7A0C1E !important; }
         .dot { width:7px; height:7px; border-radius:50%; background:#7A0C1E; display:inline-block; margin-right:4px; animation:pulse 1s infinite; }
         .dot:nth-child(2){animation-delay:.2s} .dot:nth-child(3){animation-delay:.4s}
         textarea:focus, input:focus { outline:2px solid #B91230; }
         .botBubble table tr:nth-child(even) td { background: #FFF8F0; }
+        .mic-listening { animation: micPulse 1.2s infinite; }
+        .iconBtn:hover { filter: brightness(.97); }
       `}</style>
 
       <header style={S.header}>
@@ -173,11 +314,18 @@ export default function BandhanChatbotDemo({ embedded = false }) {
             <div style={S.tagline}>Virtual Assistant · Demo Prototype</div>
           </div>
         </div>
-        {mode && (
-          <button onClick={reset} style={S.exitBtn}>
-            {mode === "auth" ? "Logout" : "Switch mode"}
-          </button>
-        )}
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {mode && TTS_SUPPORTED && (
+            <button onClick={cycleVoice} style={S.voiceBtn} title={voiceTitle} aria-label={voiceTitle}>
+              <FontAwesomeIcon icon={voiceIcon} />
+            </button>
+          )}
+          {mode && (
+            <button onClick={reset} style={S.exitBtn}>
+              {mode === "auth" ? "Logout" : "Switch mode"}
+            </button>
+          )}
+        </div>
       </header>
 
       {!mode && authStep === "mobile" && (
@@ -232,15 +380,71 @@ export default function BandhanChatbotDemo({ embedded = false }) {
       {mode && (
         <>
           <main style={S.chatArea}>
-            {messages.map((m, i) => (
-              <div key={i} className="msg" style={{ ...S.row, justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
-                {m.role === "assistant" && <div style={S.avatar}>B</div>}
-                {m.role === "user"
-                  ? <div style={S.userBubble}>{m.content}</div>
-                  : <div style={S.botBubble}><ReactMarkdown components={MD}>{m.content}</ReactMarkdown></div>
-                }
-              </div>
-            ))}
+            {messages.map((m, i) => {
+              // Escalation hand-off card
+              if (m.escalation) {
+                return (
+                  <div key={i} className="msg" style={{ ...S.row, justifyContent: "flex-start" }}>
+                    <div style={S.avatar}><FontAwesomeIcon icon={faHeadset} style={{ fontSize: 14 }} /></div>
+                    <div style={S.escalationCard}>
+                      <div style={{ fontWeight: 700, color: "#7A0C1E", marginBottom: 6 }}>Let me connect you to a representative</div>
+                      <div style={{ fontSize: 13, color: "#5a4a42", lineHeight: 1.5, marginBottom: 12 }}>
+                        I'm sorry I couldn't fully resolve your query. Our customer service team can assist you directly.
+                      </div>
+                      <button style={S.callBtn} onClick={() => { window.location.href = `tel:${REP_NUMBER}`; }}>
+                        <FontAwesomeIcon icon={faPhone} /> Call {REP_NUMBER_DISPLAY}
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+              const isUser = m.role === "user";
+              return (
+                <div key={i} className="msg" style={{ ...S.row, justifyContent: isUser ? "flex-end" : "flex-start", alignItems: "flex-start" }}>
+                  {!isUser && <div style={S.avatar}>B</div>}
+                  {isUser ? (
+                    <div style={S.userBubble}>{m.content}</div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", maxWidth: "82%" }}>
+                      <div className="botBubble" style={{ ...S.botBubble, maxWidth: "100%" }}>
+                        <ReactMarkdown components={MD}>{m.content}</ReactMarkdown>
+                      </div>
+                      {i > 0 && (
+                        <div style={S.fbRow}>
+                          {voiceMode !== "off" && TTS_SUPPORTED && (
+                            <button
+                              style={S.listenBtn}
+                              title={speakingIdx === i ? "Stop" : "Listen to this reply"}
+                              onClick={() => (speakingIdx === i ? stopSpeaking() : speak(m.content, i))}
+                            >
+                              <FontAwesomeIcon icon={speakingIdx === i ? faStop : faVolumeHigh} />
+                            </button>
+                          )}
+                          <span style={S.fbLabel}>Are you satisfied with the response?</span>
+                          <button
+                            style={{ ...S.fbBtn, ...(m.feedback === "up" ? S.fbUpActive : {}) }}
+                            disabled={!!m.feedback}
+                            title="Yes, satisfied"
+                            onClick={() => giveFeedback(i, "up")}
+                          >
+                            <FontAwesomeIcon icon={faThumbsUp} />
+                          </button>
+                          <button
+                            style={{ ...S.fbBtn, ...(m.feedback === "down" ? S.fbDownActive : {}) }}
+                            disabled={!!m.feedback}
+                            title="No, not satisfied"
+                            onClick={() => giveFeedback(i, "down")}
+                          >
+                            <FontAwesomeIcon icon={faThumbsDown} />
+                          </button>
+                          {m.feedback && <span style={S.fbThanks}>Thanks for your feedback.</span>}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {loading && (
               <div style={{ ...S.row, justifyContent: "flex-start" }}>
                 <div style={S.avatar}>B</div>
@@ -257,15 +461,29 @@ export default function BandhanChatbotDemo({ embedded = false }) {
           </div>
 
           <footer style={S.inputBar}>
+            {STT_SUPPORTED && (
+              <button
+                className={`iconBtn${listening ? " mic-listening" : ""}`}
+                style={{ ...S.micBtn, ...(listening ? S.micActive : {}), ...(voiceMode === "off" ? S.micDisabled : {}) }}
+                onClick={() => (listening ? stopListening() : startListening())}
+                disabled={voiceMode === "off" || loading}
+                title={voiceMode === "off" ? "Voice is switched off" : listening ? "Listening… tap to stop" : "Tap and speak your query"}
+                aria-label="Voice input"
+              >
+                <FontAwesomeIcon icon={faMicrophone} />
+              </button>
+            )}
             <textarea
               style={S.textarea}
               rows={1}
               value={input}
-              placeholder={mode === "auth" ? "Ask about your accounts, cards or loans…" : "Ask about products, rates, branches…"}
+              placeholder={listening ? "Listening…" : mode === "auth" ? "Ask about your accounts, cards or loans…" : "Ask about products, rates, branches…"}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             />
-            <button style={{ ...S.primaryBtn, margin: 0, width: 92 }} onClick={() => send()} disabled={loading}>Send</button>
+            <button className="iconBtn" style={S.sendBtn} onClick={() => send()} disabled={loading} title="Send" aria-label="Send">
+              <FontAwesomeIcon icon={faPaperPlane} />
+            </button>
           </footer>
           <p style={S.disclaimer}>
             Demo prototype · Rates & details are indicative — verify on bandhanbank.com · Bandhan Bank never asks for your OTP, PIN or CVV · 24x7 helpline 1800 258 8181
@@ -320,4 +538,18 @@ const S = {
   inputBar: { display: "flex", gap: 10, padding: "10px 16px", maxWidth: 760, margin: "0 auto", width: "100%", boxSizing: "border-box" },
   textarea: { flex: 1, resize: "none", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #E8D5C4", fontSize: 15, fontFamily: "'Roboto',sans-serif", background: "#FFFDFA" },
   disclaimer: { textAlign: "center", fontSize: 11.5, color: "#8A6F60", padding: "4px 16px 14px", maxWidth: 760, margin: "0 auto" },
+  voiceBtn: { background: "transparent", color: "#FFF8F0", border: "1px solid rgba(255,248,240,.5)", borderRadius: 8, width: 38, height: 34, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 },
+  micBtn: { width: 42, height: 42, borderRadius: "50%", border: "1.5px solid #D9B8A4", background: "#FFFDFA", color: "#7A0C1E", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0, transition: "all .15s" },
+  micActive: { background: "#B91230", color: "#FFF8F0", borderColor: "#B91230" },
+  micDisabled: { opacity: 0.4, cursor: "not-allowed" },
+  sendBtn: { width: 48, height: 42, borderRadius: 12, border: "none", background: "#B91230", color: "#FFF8F0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 },
+  fbRow: { display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap", marginTop: 7, paddingLeft: 2 },
+  fbLabel: { fontSize: 11.5, color: "#8A6F60", fontWeight: 500 },
+  fbBtn: { width: 28, height: 28, borderRadius: 8, border: "1.5px solid #E8D5C4", background: "#FFFDFA", color: "#9A8175", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 },
+  fbUpActive: { background: "#1b7f3b", borderColor: "#1b7f3b", color: "#fff" },
+  fbDownActive: { background: "#B91230", borderColor: "#B91230", color: "#fff" },
+  fbThanks: { fontSize: 11, color: "#1b7f3b", fontWeight: 700 },
+  listenBtn: { width: 28, height: 28, borderRadius: 8, border: "1.5px solid #E8D5C4", background: "#FFFDFA", color: "#7A0C1E", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 },
+  escalationCard: { maxWidth: "86%", background: "#FFF3F0", border: "1.5px solid #F0C9C0", borderRadius: "14px 14px 14px 4px", padding: "14px 16px", boxShadow: "0 3px 10px rgba(122,12,30,.08)" },
+  callBtn: { display: "inline-flex", alignItems: "center", gap: 8, background: "#B91230", color: "#FFF8F0", border: "none", borderRadius: 10, padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "'Roboto',sans-serif" },
 };
