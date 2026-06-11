@@ -7,8 +7,190 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const ANON_NOTE = "\nANONYMOUS SESSION — no customer data may be shared. If asked for balances or personal details, explain they need to verify with their registered mobile (offer the 'Existing customer' login).";
-const REP_NUMBER = "+919920570592";
-const REP_NUMBER_DISPLAY = "+91 99205 70592";
+const REP_NUMBER = "18002588181";
+const REP_NUMBER_DISPLAY = "1800 258 8181";
+
+// Languages offered before the chat starts
+const LANGUAGES = [
+  { code: "en", label: "English", stt: "en-IN", tts: "en-IN" },
+  { code: "hi", label: "हिंदी · Hindi", stt: "hi-IN", tts: "hi-IN" },
+  { code: "bn", label: "বাংলা · Bengali", stt: "bn-IN", tts: "bn-IN" },
+  { code: "mr", label: "मराठी · Marathi", stt: "mr-IN", tts: "mr-IN" },
+  { code: "hinglish", label: "Hinglish", stt: "en-IN", tts: "hi-IN" },
+];
+const langMeta = (code) => LANGUAGES.find((l) => l.code === code) || LANGUAGES[0];
+
+// Script-appropriate fonts per language
+const FONTS = {
+  en: { body: "'Roboto', sans-serif", heading: "'Roboto Slab', serif" },
+  hinglish: { body: "'Roboto', sans-serif", heading: "'Roboto Slab', serif" },
+  hi: { body: "'Noto Sans Devanagari', sans-serif", heading: "'Noto Sans Devanagari', sans-serif" },
+  mr: { body: "'Noto Sans Devanagari', sans-serif", heading: "'Noto Sans Devanagari', sans-serif" },
+  bn: { body: "'Noto Sans Bengali', sans-serif", heading: "'Noto Sans Bengali', sans-serif" },
+};
+
+// Name used in the LLM language instruction
+const LANG_NAME = {
+  en: "English",
+  hi: "Hindi (हिंदी, in Devanagari script)",
+  bn: "Bengali (বাংলা, in Bengali script)",
+  mr: "Marathi (मराठी, in Devanagari script)",
+  hinglish: "Hinglish (Hindi written in Roman/English letters, e.g. 'aapka khata balance')",
+};
+
+// All user-facing UI strings, per language
+const T = {
+  en: {
+    tagline: "Virtual Assistant · Demo Prototype",
+    chooseLanguage: "Please select your language",
+    gateTitle: "How would you like to start?",
+    gateSub: "This is a working proof-of-concept built by Applied Cloud Computing. No real customer data is used.",
+    newHere: "I'm new here", newHereDesc: "Explore accounts, deposits, loans & cards",
+    existing: "Existing customer", existingDesc: "Verify with mobile + OTP (simulated)",
+    verifyTitle: "Customer verification (demo)",
+    mobileLabel: "Registered mobile number", mobilePlaceholder: "10-digit mobile number",
+    sendOtp: "Send OTP", otpLabel: "Enter OTP sent to", otpPlaceholder: "6-digit OTP (demo: 123456)",
+    verifyBtn: "Verify & continue",
+    mobileInvalid: "Please enter a valid 10-digit mobile number.",
+    mobileNotReg: "This mobile number is not registered with us. Please use your registered number (demo: 9920570592) or visit your nearest branch.",
+    otpIncorrect: "Incorrect OTP. Hint for this demo: 123456",
+    back: "← Back",
+    greetVisitor: "Namaskar! I'm Bandhan Sahayak, your virtual assistant. I can tell you about our savings accounts, deposits, loans, cards and more — or help you find a branch. How may I help you today?",
+    greetAuth: "Welcome back, Mr. Milind Naikare! You're verified. I can help with your savings account balance, recent transactions, card services, deposits or complaints. What would you like to do?",
+    chipsVisitor: ["What savings accounts do you offer?", "Current FD interest rates", "I want to enquire about a savings account", "Open an account online", "Find a branch near me"],
+    chipsAuth: ["What's my account balance?", "Show my last 5 transactions", "Do I have any active loans?", "Do I have a credit card?", "Block my debit card"],
+    placeholderVisitor: "Ask about products, rates, branches…", placeholderAuth: "Ask about your accounts, cards or loans…",
+    listening: "Listening…",
+    feedbackLabel: "Are you satisfied with the response?", feedbackThanks: "Thanks for your feedback.",
+    escalationQuestion: "It seems I haven't been able to help. Would you like to connect with a customer representative, or continue with this chat?",
+    connectBtn: "Connect to representative", continueBtn: "Continue with this chat",
+    continueReply: "Sure! Let's continue. How can I help you?",
+    escalationTitle: "Connect with a representative", escalationBody: "Our customer service team is available 24x7 to assist you.",
+    callPrefix: "Call",
+    disclaimer: "Demo prototype · Rates & details are indicative — verify on bandhanbank.com · Bandhan Bank never asks for your OTP, PIN or CVV · 24x7 helpline 1800 258 8181",
+    logout: "Logout", switchMode: "Switch mode",
+  },
+  hi: {
+    tagline: "वर्चुअल असिस्टेंट · डेमो प्रोटोटाइप",
+    chooseLanguage: "कृपया अपनी भाषा चुनें",
+    gateTitle: "आप कैसे शुरू करना चाहेंगे?",
+    gateSub: "यह Applied Cloud Computing द्वारा बनाया गया एक कार्यशील प्रोटोटाइप है। किसी वास्तविक ग्राहक डेटा का उपयोग नहीं किया गया है।",
+    newHere: "मैं नया हूँ", newHereDesc: "खाते, जमा, ऋण और कार्ड देखें",
+    existing: "मौजूदा ग्राहक", existingDesc: "मोबाइल + OTP से सत्यापित करें (सिम्युलेटेड)",
+    verifyTitle: "ग्राहक सत्यापन (डेमो)",
+    mobileLabel: "पंजीकृत मोबाइल नंबर", mobilePlaceholder: "10 अंकों का मोबाइल नंबर",
+    sendOtp: "OTP भेजें", otpLabel: "इस नंबर पर भेजा गया OTP दर्ज करें", otpPlaceholder: "6 अंकों का OTP (डेमो: 123456)",
+    verifyBtn: "सत्यापित करें और जारी रखें",
+    mobileInvalid: "कृपया एक मान्य 10 अंकों का मोबाइल नंबर दर्ज करें।",
+    mobileNotReg: "यह मोबाइल नंबर हमारे पास पंजीकृत नहीं है। कृपया अपना पंजीकृत नंबर उपयोग करें (डेमो: 9920570592) या अपनी नज़दीकी शाखा पर जाएँ।",
+    otpIncorrect: "गलत OTP। इस डेमो के लिए संकेत: 123456",
+    back: "← वापस",
+    greetVisitor: "नमस्कार! मैं बंधन सहायक हूँ, आपका वर्चुअल असिस्टेंट। मैं आपको हमारे बचत खातों, जमा, ऋण, कार्ड और अन्य के बारे में बता सकता हूँ — या शाखा खोजने में मदद कर सकता हूँ। मैं आपकी कैसे मदद करूँ?",
+    greetAuth: "वापसी पर स्वागत है, श्री मिलिंद नाइकरे! आप सत्यापित हैं। मैं आपके बचत खाते की शेष राशि, हाल के लेन-देन, कार्ड सेवाओं, जमा या शिकायतों में मदद कर सकता हूँ। आप क्या करना चाहेंगे?",
+    chipsVisitor: ["आप कौन से बचत खाते देते हैं?", "वर्तमान FD ब्याज दरें", "मैं बचत खाते के बारे में जानना चाहता हूँ", "ऑनलाइन खाता खोलें", "मेरे पास की शाखा खोजें"],
+    chipsAuth: ["मेरे खाते की शेष राशि क्या है?", "मेरे पिछले 5 लेन-देन दिखाएँ", "क्या मेरे कोई सक्रिय ऋण हैं?", "क्या मेरे पास क्रेडिट कार्ड है?", "मेरा डेबिट कार्ड ब्लॉक करें"],
+    placeholderVisitor: "उत्पादों, दरों, शाखाओं के बारे में पूछें…", placeholderAuth: "अपने खातों, कार्ड या ऋण के बारे में पूछें…",
+    listening: "सुन रहा हूँ…",
+    feedbackLabel: "क्या आप इस उत्तर से संतुष्ट हैं?", feedbackThanks: "आपकी प्रतिक्रिया के लिए धन्यवाद।",
+    escalationQuestion: "लगता है मैं मदद नहीं कर पाया। क्या आप किसी ग्राहक प्रतिनिधि से जुड़ना चाहेंगे, या इस चैट को जारी रखना चाहेंगे?",
+    connectBtn: "प्रतिनिधि से जुड़ें", continueBtn: "चैट जारी रखें",
+    continueReply: "ज़रूर! चलिए जारी रखते हैं। मैं आपकी कैसे मदद करूँ?",
+    escalationTitle: "प्रतिनिधि से जुड़ें", escalationBody: "हमारी ग्राहक सेवा टीम आपकी सहायता के लिए 24x7 उपलब्ध है।",
+    callPrefix: "कॉल करें",
+    disclaimer: "डेमो प्रोटोटाइप · दरें और विवरण सांकेतिक हैं — bandhanbank.com पर सत्यापित करें · बंधन बैंक कभी आपका OTP, PIN या CVV नहीं पूछता · 24x7 हेल्पलाइन 1800 258 8181",
+    logout: "लॉग आउट", switchMode: "मोड बदलें",
+  },
+  bn: {
+    tagline: "ভার্চুয়াল অ্যাসিস্ট্যান্ট · ডেমো প্রোটোটাইপ",
+    chooseLanguage: "অনুগ্রহ করে আপনার ভাষা নির্বাচন করুন",
+    gateTitle: "আপনি কীভাবে শুরু করতে চান?",
+    gateSub: "এটি Applied Cloud Computing দ্বারা তৈরি একটি কার্যকরী প্রোটোটাইপ। কোনো প্রকৃত গ্রাহকের তথ্য ব্যবহার করা হয়নি।",
+    newHere: "আমি নতুন", newHereDesc: "অ্যাকাউন্ট, আমানত, ঋণ ও কার্ড দেখুন",
+    existing: "বিদ্যমান গ্রাহক", existingDesc: "মোবাইল + OTP দিয়ে যাচাই করুন (সিমুলেটেড)",
+    verifyTitle: "গ্রাহক যাচাইকরণ (ডেমো)",
+    mobileLabel: "নিবন্ধিত মোবাইল নম্বর", mobilePlaceholder: "১০ সংখ্যার মোবাইল নম্বর",
+    sendOtp: "OTP পাঠান", otpLabel: "এই নম্বরে পাঠানো OTP লিখুন", otpPlaceholder: "৬ সংখ্যার OTP (ডেমো: 123456)",
+    verifyBtn: "যাচাই করে এগিয়ে যান",
+    mobileInvalid: "অনুগ্রহ করে একটি বৈধ ১০ সংখ্যার মোবাইল নম্বর লিখুন।",
+    mobileNotReg: "এই মোবাইল নম্বরটি আমাদের কাছে নিবন্ধিত নয়। অনুগ্রহ করে আপনার নিবন্ধিত নম্বর ব্যবহার করুন (ডেমো: 9920570592) অথবা নিকটতম শাখায় যান।",
+    otpIncorrect: "ভুল OTP। এই ডেমোর জন্য ইঙ্গিত: 123456",
+    back: "← পিছনে",
+    greetVisitor: "নমস্কার! আমি বন্ধন সহায়ক, আপনার ভার্চুয়াল অ্যাসিস্ট্যান্ট। আমি আপনাকে আমাদের সঞ্চয় অ্যাকাউন্ট, আমানত, ঋণ, কার্ড এবং আরও অনেক কিছু সম্পর্কে বলতে পারি — অথবা একটি শাখা খুঁজে পেতে সাহায্য করতে পারি। আমি আজ আপনাকে কীভাবে সাহায্য করতে পারি?",
+    greetAuth: "ফিরে আসায় স্বাগতম, মিঃ মিলিন্দ নায়করে! আপনি যাচাই হয়েছেন। আমি আপনার সঞ্চয় অ্যাকাউন্টের ব্যালেন্স, সাম্প্রতিক লেনদেন, কার্ড পরিষেবা, আমানত বা অভিযোগে সাহায্য করতে পারি। আপনি কী করতে চান?",
+    chipsVisitor: ["আপনারা কোন সঞ্চয় অ্যাকাউন্ট অফার করেন?", "বর্তমান FD সুদের হার", "আমি একটি সঞ্চয় অ্যাকাউন্ট সম্পর্কে জানতে চাই", "অনলাইনে অ্যাকাউন্ট খুলুন", "আমার কাছাকাছি একটি শাখা খুঁজুন"],
+    chipsAuth: ["আমার অ্যাকাউন্টের ব্যালেন্স কত?", "আমার শেষ ৫টি লেনদেন দেখান", "আমার কি কোনো সক্রিয় ঋণ আছে?", "আমার কি ক্রেডিট কার্ড আছে?", "আমার ডেবিট কার্ড ব্লক করুন"],
+    placeholderVisitor: "পণ্য, হার, শাখা সম্পর্কে জিজ্ঞাসা করুন…", placeholderAuth: "আপনার অ্যাকাউন্ট, কার্ড বা ঋণ সম্পর্কে জিজ্ঞাসা করুন…",
+    listening: "শুনছি…",
+    feedbackLabel: "আপনি কি এই উত্তরে সন্তুষ্ট?", feedbackThanks: "আপনার মতামতের জন্য ধন্যবাদ।",
+    escalationQuestion: "মনে হচ্ছে আমি সাহায্য করতে পারিনি। আপনি কি একজন গ্রাহক প্রতিনিধির সাথে সংযোগ করতে চান, নাকি এই চ্যাট চালিয়ে যেতে চান?",
+    connectBtn: "প্রতিনিধির সাথে সংযোগ করুন", continueBtn: "চ্যাট চালিয়ে যান",
+    continueReply: "অবশ্যই! চলুন চালিয়ে যাই। আমি কীভাবে সাহায্য করতে পারি?",
+    escalationTitle: "প্রতিনিধির সাথে সংযোগ করুন", escalationBody: "আমাদের গ্রাহক সেবা দল আপনাকে সাহায্য করতে ২৪x৭ উপলব্ধ।",
+    callPrefix: "কল করুন",
+    disclaimer: "ডেমো প্রোটোটাইপ · হার ও বিবরণ সূচক — bandhanbank.com-এ যাচাই করুন · বন্ধন ব্যাঙ্ক কখনও আপনার OTP, PIN বা CVV চায় না · ২৪x৭ হেল্পলাইন 1800 258 8181",
+    logout: "লগ আউট", switchMode: "মোড পরিবর্তন করুন",
+  },
+  mr: {
+    tagline: "व्हर्च्युअल असिस्टंट · डेमो प्रोटोटाइप",
+    chooseLanguage: "कृपया तुमची भाषा निवडा",
+    gateTitle: "तुम्हाला कसे सुरू करायचे आहे?",
+    gateSub: "हा Applied Cloud Computing ने तयार केलेला एक कार्यरत प्रोटोटाइप आहे. कोणताही खरा ग्राहक डेटा वापरलेला नाही.",
+    newHere: "मी नवीन आहे", newHereDesc: "खाती, ठेवी, कर्जे आणि कार्ड पहा",
+    existing: "विद्यमान ग्राहक", existingDesc: "मोबाइल + OTP ने पडताळणी करा (सिम्युलेटेड)",
+    verifyTitle: "ग्राहक पडताळणी (डेमो)",
+    mobileLabel: "नोंदणीकृत मोबाइल नंबर", mobilePlaceholder: "10 अंकी मोबाइल नंबर",
+    sendOtp: "OTP पाठवा", otpLabel: "या नंबरवर पाठवलेला OTP प्रविष्ट करा", otpPlaceholder: "6 अंकी OTP (डेमो: 123456)",
+    verifyBtn: "पडताळणी करा आणि सुरू ठेवा",
+    mobileInvalid: "कृपया वैध 10 अंकी मोबाइल नंबर प्रविष्ट करा.",
+    mobileNotReg: "हा मोबाइल नंबर आमच्याकडे नोंदणीकृत नाही. कृपया तुमचा नोंदणीकृत नंबर वापरा (डेमो: 9920570592) किंवा जवळच्या शाखेला भेट द्या.",
+    otpIncorrect: "चुकीचा OTP. या डेमोसाठी सूचना: 123456",
+    back: "← मागे",
+    greetVisitor: "नमस्कार! मी बंधन सहायक आहे, तुमचा व्हर्च्युअल असिस्टंट. मी तुम्हाला आमची बचत खाती, ठेवी, कर्जे, कार्ड आणि बरेच काही सांगू शकतो — किंवा शाखा शोधण्यात मदत करू शकतो. मी आज तुमची कशी मदत करू?",
+    greetAuth: "पुन्हा स्वागत आहे, श्री मिलिंद नाईकरे! तुमची पडताळणी झाली आहे. मी तुमच्या बचत खात्याची शिल्लक, अलीकडील व्यवहार, कार्ड सेवा, ठेवी किंवा तक्रारींमध्ये मदत करू शकतो. तुम्हाला काय करायचे आहे?",
+    chipsVisitor: ["तुम्ही कोणती बचत खाती देता?", "सध्याचे FD व्याजदर", "मला बचत खात्याबद्दल चौकशी करायची आहे", "ऑनलाइन खाते उघडा", "माझ्या जवळची शाखा शोधा"],
+    chipsAuth: ["माझ्या खात्याची शिल्लक किती आहे?", "माझे शेवटचे 5 व्यवहार दाखवा", "माझी काही सक्रिय कर्जे आहेत का?", "माझ्याकडे क्रेडिट कार्ड आहे का?", "माझे डेबिट कार्ड ब्लॉक करा"],
+    placeholderVisitor: "उत्पादने, दर, शाखांबद्दल विचारा…", placeholderAuth: "तुमची खाती, कार्ड किंवा कर्जांबद्दल विचारा…",
+    listening: "ऐकत आहे…",
+    feedbackLabel: "तुम्ही या उत्तराने समाधानी आहात का?", feedbackThanks: "तुमच्या अभिप्रायाबद्दल धन्यवाद.",
+    escalationQuestion: "असे दिसते की मी मदत करू शकलो नाही. तुम्हाला ग्राहक प्रतिनिधीशी संपर्क साधायचा आहे, की ही चॅट सुरू ठेवायची आहे?",
+    connectBtn: "प्रतिनिधीशी संपर्क साधा", continueBtn: "चॅट सुरू ठेवा",
+    continueReply: "नक्कीच! चला सुरू ठेवूया. मी तुमची कशी मदत करू?",
+    escalationTitle: "प्रतिनिधीशी संपर्क साधा", escalationBody: "आमची ग्राहक सेवा टीम तुम्हाला मदत करण्यासाठी 24x7 उपलब्ध आहे.",
+    callPrefix: "कॉल करा",
+    disclaimer: "डेमो प्रोटोटाइप · दर आणि तपशील सूचक आहेत — bandhanbank.com वर पडताळा · बंधन बँक कधीही तुमचा OTP, PIN किंवा CVV विचारत नाही · 24x7 हेल्पलाइन 1800 258 8181",
+    logout: "लॉग आउट", switchMode: "मोड बदला",
+  },
+  hinglish: {
+    tagline: "Virtual Assistant · Demo Prototype",
+    chooseLanguage: "Apni bhasha chunein",
+    gateTitle: "Aap kaise shuru karna chahenge?",
+    gateSub: "Yeh Applied Cloud Computing dwara banaya gaya ek working prototype hai. Koi real customer data use nahi hua hai.",
+    newHere: "Main naya hoon", newHereDesc: "Accounts, deposits, loans aur cards dekhein",
+    existing: "Existing customer", existingDesc: "Mobile + OTP se verify karein (simulated)",
+    verifyTitle: "Customer verification (demo)",
+    mobileLabel: "Registered mobile number", mobilePlaceholder: "10-digit mobile number",
+    sendOtp: "OTP bhejein", otpLabel: "Is number par bheja gaya OTP daalein", otpPlaceholder: "6-digit OTP (demo: 123456)",
+    verifyBtn: "Verify karke aage badhein",
+    mobileInvalid: "Kripya ek valid 10-digit mobile number daalein.",
+    mobileNotReg: "Yeh mobile number hamare paas registered nahi hai. Kripya apna registered number use karein (demo: 9920570592) ya apni nazdeeki branch par jaayein.",
+    otpIncorrect: "Galat OTP. Is demo ke liye hint: 123456",
+    back: "← Wapas",
+    greetVisitor: "Namaskar! Main Bandhan Sahayak hoon, aapka virtual assistant. Main aapko hamare savings accounts, deposits, loans, cards aur bahut kuch ke baare mein bata sakta hoon — ya branch dhoondhne mein madad kar sakta hoon. Aaj main aapki kaise madad karoon?",
+    greetAuth: "Wapas swagat hai, Mr. Milind Naikare! Aap verified hain. Main aapke savings account ka balance, recent transactions, card services, deposits ya complaints mein madad kar sakta hoon. Aap kya karna chahenge?",
+    chipsVisitor: ["Aap kaun se savings accounts offer karte hain?", "Current FD interest rates", "Main savings account ke baare mein jaanna chahta hoon", "Online account kholein", "Mere paas ki branch dhoondhein"],
+    chipsAuth: ["Mere account ka balance kya hai?", "Mere last 5 transactions dikhayein", "Kya mere koi active loans hain?", "Kya mere paas credit card hai?", "Mera debit card block karein"],
+    placeholderVisitor: "Products, rates, branches ke baare mein poochein…", placeholderAuth: "Apne accounts, cards ya loans ke baare mein poochein…",
+    listening: "Sun raha hoon…",
+    feedbackLabel: "Kya aap is response se satisfied hain?", feedbackThanks: "Aapke feedback ke liye dhanyavaad.",
+    escalationQuestion: "Lagta hai main madad nahi kar paaya. Kya aap customer representative se connect karna chahenge, ya is chat ko continue karna chahenge?",
+    connectBtn: "Representative se connect karein", continueBtn: "Chat continue karein",
+    continueReply: "Zaroor! Chaliye continue karte hain. Main aapki kaise madad karoon?",
+    escalationTitle: "Representative se connect karein", escalationBody: "Hamari customer service team aapki madad ke liye 24x7 available hai.",
+    callPrefix: "Call karein",
+    disclaimer: "Demo prototype · Rates aur details indicative hain — bandhanbank.com par verify karein · Bandhan Bank kabhi aapka OTP, PIN ya CVV nahi poochta · 24x7 helpline 1800 258 8181",
+    logout: "Logout", switchMode: "Mode badlein",
+  },
+};
 
 const KB = `
 You are "Bandhan Sahayak", the official virtual assistant DEMO for Bandhan Bank (this is a prototype built by Applied Cloud Computing — say so if asked whether you are real).
@@ -72,29 +254,14 @@ For complaints: generate a ticket ID like BBC-2026-XXXXX (random 5 digits) and c
 Address him by name (Mr. Naikare or Milind) naturally but not in every message.
 `;
 
-const CHIPS_VISITOR = [
-  "What savings accounts do you offer?",
-  "Current FD interest rates",
-  "I want to enquire about a savings account",
-  "Open an account online",
-  "Find a branch near me",
-];
-const CHIPS_AUTH = [
-  "What's my account balance?",
-  "Show my last 5 transactions",
-  "Do I have any active loans?",
-  "Do I have a credit card?",
-  "Block my debit card",
-];
-
 const STT_SUPPORTED = typeof window !== "undefined" && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 const TTS_SUPPORTED = typeof window !== "undefined" && "speechSynthesis" in window;
 
 // Pick a TTS language from the script of the reply text (multilingual output)
-const detectTtsLang = (text) => {
-  if (/[ঀ-৿]/.test(text)) return "bn-IN";   // Bengali script
-  if (/[ऀ-ॿ]/.test(text)) return "hi-IN";   // Devanagari (Hindi / Marathi)
-  return "en-IN";                                       // Latin (English / Hinglish)
+const detectTtsLang = (text, langCode) => {
+  if (/[ঀ-৿]/.test(text)) return "bn-IN";                          // Bengali script
+  if (/[ऀ-ॿ]/.test(text)) return langCode === "mr" ? "mr-IN" : "hi-IN"; // Devanagari (Hindi / Marathi)
+  return "en-IN";                                                              // Latin (English / Hinglish)
 };
 
 // Strip markdown so speech is clean
@@ -117,6 +284,10 @@ export default function BandhanChatbotDemo({ embedded = false }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Language selected before the chat starts
+  const [language, setLanguage] = useState("en");
+  const langRef = useRef("en");
+
   // Voice: voiceMode = "on" (auto-speak) | "muted" (no auto-speak, manual replay ok) | "off" (fully disabled)
   const [voiceMode, setVoiceMode] = useState("on");
   const [listening, setListening] = useState(false);
@@ -127,6 +298,11 @@ export default function BandhanChatbotDemo({ embedded = false }) {
   const voicesRef = useRef([]);
   const recognitionRef = useRef(null);
   const downCountRef = useRef(0); // consecutive thumbs-down counter
+
+  const t = T[language];
+  const fonts = FONTS[language];
+
+  useEffect(() => { langRef.current = language; }, [language]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -151,7 +327,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(clean);
-      const tl = detectTtsLang(text);
+      const tl = detectTtsLang(text, langRef.current);
       u.lang = tl;
       const vs = voicesRef.current.length ? voicesRef.current : window.speechSynthesis.getVoices();
       const match = vs.find((v) => v.lang === tl) || vs.find((v) => v.lang && v.lang.startsWith(tl.split("-")[0]));
@@ -170,7 +346,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
     if (!STT_SUPPORTED || voiceModeRef.current === "off" || loading) return;
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const rec = new SR();
-    rec.lang = "en-IN";
+    rec.lang = langMeta(langRef.current).stt;
     rec.interimResults = true;
     rec.continuous = false;
     rec.maxAlternatives = 1;
@@ -215,16 +391,23 @@ export default function BandhanChatbotDemo({ embedded = false }) {
     downCountRef.current += 1;
     if (downCountRef.current >= 3) {
       downCountRef.current = 0;
-      setMessages((prev) => [...prev, { role: "assistant", escalation: true }]);
+      // Ask first — only show the contact number if the user opts to connect
+      setMessages((prev) => [...prev, { role: "assistant", escalationPrompt: true }]);
     }
   };
 
+  const handleEscalationChoice = (idx, choice) => {
+    setMessages((prev) => {
+      if (prev[idx]?.resolved) return prev;
+      const updated = prev.map((m, i) => (i === idx ? { ...m, resolved: choice } : m));
+      if (choice === "connect") return [...updated, { role: "assistant", escalation: true }];
+      return [...updated, { role: "assistant", content: T[langRef.current].continueReply }];
+    });
+  };
+
   const greet = (m) => {
-    const g =
-      m === "auth"
-        ? "Welcome back, Mr. Milind Naikare! You're verified. I can help with your savings account balance, recent transactions, card services, deposits or complaints. What would you like to do?"
-        : "Namaskar! I'm Bandhan Sahayak, your virtual assistant. I can tell you about our savings accounts, deposits, loans, cards and more — or help you find a branch. How may I help you today?";
-    setMessages([{ role: "assistant", content: g }]);
+    const tr = T[langRef.current];
+    setMessages([{ role: "assistant", content: m === "auth" ? tr.greetAuth : tr.greetVisitor }]);
   };
 
   const startVisitor = () => { setMode("visitor"); greet("visitor"); };
@@ -232,14 +415,14 @@ export default function BandhanChatbotDemo({ embedded = false }) {
   const REGISTERED_MOBILE = "9920570592";
 
   const verifyMobile = () => {
-    if (!/^\d{10}$/.test(mobile)) { setAuthError("Please enter a valid 10-digit mobile number."); return; }
-    if (mobile !== REGISTERED_MOBILE) { setAuthError("This mobile number is not registered with us. Please use your registered number (demo: 9920570592) or visit your nearest branch."); return; }
+    if (!/^\d{10}$/.test(mobile)) { setAuthError(t.mobileInvalid); return; }
+    if (mobile !== REGISTERED_MOBILE) { setAuthError(t.mobileNotReg); return; }
     setAuthError(""); setAuthStep("otp");
   };
 
   const verifyOtp = () => {
     if (otp === "123456") { setAuthError(""); setAuthStep("done"); setMode("auth"); greet("auth"); }
-    else setAuthError("Incorrect OTP. Hint for this demo: 123456");
+    else setAuthError(t.otpIncorrect);
   };
 
   const send = async (text) => {
@@ -251,7 +434,9 @@ export default function BandhanChatbotDemo({ embedded = false }) {
     setMessages(newMsgs);
     setLoading(true);
     try {
-      const system = KB + (mode === "auth" ? MOCK_CUSTOMER : ANON_NOTE);
+      const langName = LANG_NAME[langRef.current];
+      const langInstruction = `\n\nLANGUAGE INSTRUCTION (overrides any other language rule): The user has selected ${langName}. You MUST reply ONLY in ${langName} for every response, regardless of the language the user types in. Keep banking terms understandable.`;
+      const system = KB + (mode === "auth" ? MOCK_CUSTOMER : ANON_NOTE) + langInstruction;
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -284,23 +469,26 @@ export default function BandhanChatbotDemo({ embedded = false }) {
     downCountRef.current = 0;
     setMode(null); setAuthStep("mobile"); setMobile(""); setOtp(""); setMessages([]); setAuthError("");
   };
-  const chips = mode === "auth" ? CHIPS_AUTH : CHIPS_VISITOR;
+  const chips = mode === "auth" ? t.chipsAuth : t.chipsVisitor;
 
   const voiceIcon = voiceMode === "on" ? faVolumeHigh : voiceMode === "muted" ? faVolumeXmark : faBan;
   const voiceTitle = voiceMode === "on" ? "Voice replies ON — tap to mute" : voiceMode === "muted" ? "Voice MUTED — tap to switch off" : "Voice OFF — tap to turn on";
 
   return (
-    <div style={{ ...S.page, ...(embedded ? { minHeight: 0, height: "100%", overflow: "hidden" } : {}) }}>
+    <div className="bsa-root" style={{ ...S.page, fontFamily: fonts.body, ...(embedded ? { minHeight: 0, height: "100%", overflow: "hidden" } : {}) }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=Roboto:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=Roboto:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;500;700&family=Noto+Sans+Bengali:wght@400;500;700&display=swap');
         @keyframes rise { from { opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
         @keyframes pulse { 0%,100%{opacity:.35} 50%{opacity:1} }
         @keyframes micPulse { 0%,100%{box-shadow:0 0 0 0 rgba(185,18,48,.5)} 50%{box-shadow:0 0 0 9px rgba(185,18,48,0)} }
+        .bsa-root, .bsa-root input, .bsa-root textarea, .bsa-root button, .bsa-root select,
+        .bsa-root p, .bsa-root li, .bsa-root td, .bsa-root th, .bsa-root span, .bsa-root strong, .bsa-root label { font-family: ${fonts.body} !important; }
+        .bsa-root h1, .bsa-root h2, .bsa-root h3, .bsa-root .heading { font-family: ${fonts.heading} !important; }
         .msg { animation: rise .35s ease both; }
         .chip:hover { background:#7A0C1E !important; color:#FFF8F0 !important; border-color:#7A0C1E !important; }
         .dot { width:7px; height:7px; border-radius:50%; background:#7A0C1E; display:inline-block; margin-right:4px; animation:pulse 1s infinite; }
         .dot:nth-child(2){animation-delay:.2s} .dot:nth-child(3){animation-delay:.4s}
-        textarea:focus, input:focus { outline:2px solid #B91230; }
+        textarea:focus, input:focus, select:focus { outline:2px solid #B91230; }
         .botBubble table tr:nth-child(even) td { background: #FFF8F0; }
         .mic-listening { animation: micPulse 1.2s infinite; }
         .iconBtn:hover { filter: brightness(.97); }
@@ -310,8 +498,8 @@ export default function BandhanChatbotDemo({ embedded = false }) {
         <div style={S.logoBox}>
           <div style={S.logoMark}>৳</div>
           <div>
-            <div style={S.bankName}>Bandhan Bank</div>
-            <div style={S.tagline}>Virtual Assistant · Demo Prototype</div>
+            <div className="heading" style={S.bankName}>Bandhan Bank</div>
+            <div style={S.tagline}>{t.tagline}</div>
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -322,7 +510,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
           )}
           {mode && (
             <button onClick={reset} style={S.exitBtn}>
-              {mode === "auth" ? "Logout" : "Switch mode"}
+              {mode === "auth" ? t.logout : t.switchMode}
             </button>
           )}
         </div>
@@ -330,18 +518,24 @@ export default function BandhanChatbotDemo({ embedded = false }) {
 
       {!mode && authStep === "mobile" && (
         <div style={S.gate} className="msg">
-          <h2 style={S.gateTitle}>How would you like to start?</h2>
-          <p style={S.gateSub}>This is a working proof-of-concept built by Applied Cloud Computing. No real customer data is used.</p>
+          <div style={S.langPickWrap}>
+            <label style={S.langPickLabel}>{t.chooseLanguage}</label>
+            <select style={S.langSelect} value={language} onChange={(e) => setLanguage(e.target.value)}>
+              {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+            </select>
+          </div>
+          <h2 style={S.gateTitle}>{t.gateTitle}</h2>
+          <p style={S.gateSub}>{t.gateSub}</p>
           <div style={S.gateCards}>
             <button style={S.gateCard} onClick={startVisitor}>
               <span style={S.gateEmoji}>🔍</span>
-              <strong>I'm new here</strong>
-              <span style={S.gateDesc}>Explore accounts, deposits, loans & cards</span>
+              <strong>{t.newHere}</strong>
+              <span style={S.gateDesc}>{t.newHereDesc}</span>
             </button>
             <button style={S.gateCard} onClick={() => setAuthStep("login")}>
               <span style={S.gateEmoji}>🔐</span>
-              <strong>Existing customer</strong>
-              <span style={S.gateDesc}>Verify with mobile + OTP (simulated)</span>
+              <strong>{t.existing}</strong>
+              <span style={S.gateDesc}>{t.existingDesc}</span>
             </button>
           </div>
         </div>
@@ -349,29 +543,29 @@ export default function BandhanChatbotDemo({ embedded = false }) {
 
       {!mode && authStep !== "mobile" && (
         <div style={S.gate} className="msg">
-          <h2 style={S.gateTitle}>Customer verification (demo)</h2>
+          <h2 style={S.gateTitle}>{t.verifyTitle}</h2>
           {authStep === "login" || authStep === "otp" ? (
             <div style={{ maxWidth: 340, margin: "0 auto", textAlign: "left" }}>
               {authStep === "login" && (
                 <>
-                  <label style={S.label}>Registered mobile number</label>
+                  <label style={S.label}>{t.mobileLabel}</label>
                   <input style={S.input} value={mobile} maxLength={10}
                     onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
-                    placeholder="10-digit mobile number" />
-                  <button style={S.primaryBtn} onClick={verifyMobile}>Send OTP</button>
+                    placeholder={t.mobilePlaceholder} />
+                  <button style={S.primaryBtn} onClick={verifyMobile}>{t.sendOtp}</button>
                 </>
               )}
               {authStep === "otp" && (
                 <>
-                  <label style={S.label}>Enter OTP sent to +91-{mobile.slice(0,2)}XXXX{mobile.slice(8)}</label>
+                  <label style={S.label}>{t.otpLabel} +91-{mobile.slice(0,2)}XXXX{mobile.slice(8)}</label>
                   <input style={S.input} value={otp} maxLength={6}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    placeholder="6-digit OTP (demo: 123456)" />
-                  <button style={S.primaryBtn} onClick={verifyOtp}>Verify & continue</button>
+                    placeholder={t.otpPlaceholder} />
+                  <button style={S.primaryBtn} onClick={verifyOtp}>{t.verifyBtn}</button>
                 </>
               )}
               {authError && <p style={S.error}>{authError}</p>}
-              <button style={S.linkBtn} onClick={reset}>← Back</button>
+              <button style={S.linkBtn} onClick={reset}>{t.back}</button>
             </div>
           ) : null}
         </div>
@@ -381,18 +575,43 @@ export default function BandhanChatbotDemo({ embedded = false }) {
         <>
           <main style={S.chatArea}>
             {messages.map((m, i) => {
-              // Escalation hand-off card
+              // Step 1: ask whether to connect to a representative or continue
+              if (m.escalationPrompt) {
+                return (
+                  <div key={i} className="msg" style={{ ...S.row, justifyContent: "flex-start" }}>
+                    <div style={S.avatar}><FontAwesomeIcon icon={faHeadset} style={{ fontSize: 14 }} /></div>
+                    <div style={{ ...S.botBubble, maxWidth: "86%" }}>
+                      <div style={{ marginBottom: 12, lineHeight: 1.5 }}>{t.escalationQuestion}</div>
+                      {!m.resolved ? (
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          <button style={S.callBtn} onClick={() => handleEscalationChoice(i, "connect")}>
+                            <FontAwesomeIcon icon={faHeadset} /> {t.connectBtn}
+                          </button>
+                          <button style={S.secondaryBtn} onClick={() => handleEscalationChoice(i, "continue")}>
+                            {t.continueBtn}
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 12, color: "#8A6F60", fontStyle: "italic" }}>
+                          {m.resolved === "connect" ? t.connectBtn : t.continueBtn} ✓
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+              // Step 2: contact card, shown only after the user opts to connect
               if (m.escalation) {
                 return (
                   <div key={i} className="msg" style={{ ...S.row, justifyContent: "flex-start" }}>
                     <div style={S.avatar}><FontAwesomeIcon icon={faHeadset} style={{ fontSize: 14 }} /></div>
                     <div style={S.escalationCard}>
-                      <div style={{ fontWeight: 700, color: "#7A0C1E", marginBottom: 6 }}>Let me connect you to a representative</div>
+                      <div className="heading" style={{ fontWeight: 700, color: "#7A0C1E", marginBottom: 6 }}>{t.escalationTitle}</div>
                       <div style={{ fontSize: 13, color: "#5a4a42", lineHeight: 1.5, marginBottom: 12 }}>
-                        I'm sorry I couldn't fully resolve your query. Our customer service team can assist you directly.
+                        {t.escalationBody}
                       </div>
                       <button style={S.callBtn} onClick={() => { window.location.href = `tel:${REP_NUMBER}`; }}>
-                        <FontAwesomeIcon icon={faPhone} /> Call {REP_NUMBER_DISPLAY}
+                        <FontAwesomeIcon icon={faPhone} /> {t.callPrefix} {REP_NUMBER_DISPLAY}
                       </button>
                     </div>
                   </div>
@@ -420,7 +639,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
                               <FontAwesomeIcon icon={speakingIdx === i ? faStop : faVolumeHigh} />
                             </button>
                           )}
-                          <span style={S.fbLabel}>Are you satisfied with the response?</span>
+                          <span style={S.fbLabel}>{t.feedbackLabel}</span>
                           <button
                             style={{ ...S.fbBtn, ...(m.feedback === "up" ? S.fbUpActive : {}) }}
                             disabled={!!m.feedback}
@@ -437,7 +656,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
                           >
                             <FontAwesomeIcon icon={faThumbsDown} />
                           </button>
-                          {m.feedback && <span style={S.fbThanks}>Thanks for your feedback.</span>}
+                          {m.feedback && <span style={S.fbThanks}>{t.feedbackThanks}</span>}
                         </div>
                       )}
                     </div>
@@ -477,7 +696,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
               style={S.textarea}
               rows={1}
               value={input}
-              placeholder={listening ? "Listening…" : mode === "auth" ? "Ask about your accounts, cards or loans…" : "Ask about products, rates, branches…"}
+              placeholder={listening ? t.listening : mode === "auth" ? t.placeholderAuth : t.placeholderVisitor}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             />
@@ -485,9 +704,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
               <FontAwesomeIcon icon={faPaperPlane} />
             </button>
           </footer>
-          <p style={S.disclaimer}>
-            Demo prototype · Rates & details are indicative — verify on bandhanbank.com · Bandhan Bank never asks for your OTP, PIN or CVV · 24x7 helpline 1800 258 8181
-          </p>
+          <p style={S.disclaimer}>{t.disclaimer}</p>
         </>
       )}
     </div>
@@ -552,4 +769,8 @@ const S = {
   listenBtn: { width: 28, height: 28, borderRadius: 8, border: "1.5px solid #E8D5C4", background: "#FFFDFA", color: "#7A0C1E", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 },
   escalationCard: { maxWidth: "86%", background: "#FFF3F0", border: "1.5px solid #F0C9C0", borderRadius: "14px 14px 14px 4px", padding: "14px 16px", boxShadow: "0 3px 10px rgba(122,12,30,.08)" },
   callBtn: { display: "inline-flex", alignItems: "center", gap: 8, background: "#B91230", color: "#FFF8F0", border: "none", borderRadius: 10, padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "'Roboto',sans-serif" },
+  secondaryBtn: { display: "inline-flex", alignItems: "center", gap: 8, background: "#FFFDFA", color: "#7A0C1E", border: "1.5px solid #D9B8A4", borderRadius: 10, padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "'Roboto',sans-serif" },
+  langPickWrap: { display: "flex", flexDirection: "column", gap: 8, alignItems: "center", marginBottom: 28, padding: "16px 18px", background: "#FFFDFA", border: "1.5px solid #E8D5C4", borderRadius: 14, maxWidth: 340, marginLeft: "auto", marginRight: "auto" },
+  langPickLabel: { fontWeight: 700, fontSize: 14, color: "#7A0C1E" },
+  langSelect: { width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #E8D5C4", fontSize: 15, background: "#fff", cursor: "pointer", color: "#2B1A14" },
 };
