@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMicrophone, faVolumeHigh, faVolumeXmark, faBan, faStop,
@@ -230,6 +231,16 @@ STRICT RULES:
 RESPONSE FORMATTING — follow these rules on every reply:
 - Simple factual answer (one fact, yes/no, short explanation): 1–3 sentences of plain prose. No headings, tables, or bullets.
 - Comparing 2+ things OR listing items with multiple attributes (account types, cards, loans, rates, fees): use a Markdown TABLE with a clear header row. Keep cell text short — values not paragraphs.
+- TABLE FORMATTING IS STRICT — tables only render if formatted exactly like GitHub-Flavored Markdown:
+  * Put EACH row on its OWN line with a real line break. Never put the whole table on one line.
+  * The SECOND line must be the delimiter row, e.g. \`| --- | --- | --- |\`, on its own line.
+  * Every row must start and end with a pipe \`|\` and have the same number of columns.
+  * Leave a blank line before and after the table.
+  Example (note the line breaks):
+  | Account | Min Balance | Key Benefit |
+  | --- | --- | --- |
+  | Standard | ₹5,000 | Multi-city cheques |
+  | Premium | ₹10 lakh | Lounge access |
 - A sequence of steps the user must follow in order: use a NUMBERED list.
 - A set of related but non-sequential points (features, documents, eligibility): use a BULLETED list.
 - Longer answers covering distinct subtopics: use short ### headings to separate sections. Skip headings if there is only one topic.
@@ -262,6 +273,14 @@ const detectTtsLang = (text, langCode) => {
   if (/[ঀ-৿]/.test(text)) return "bn-IN";                          // Bengali script
   if (/[ऀ-ॿ]/.test(text)) return langCode === "mr" ? "mr-IN" : "hi-IN"; // Devanagari (Hindi / Marathi)
   return "en-IN";                                                              // Latin (English / Hinglish)
+};
+
+// Repair tables that the LLM may emit on a single line so GFM can parse them.
+// GFM requires each table row (and the |---| delimiter) on its own line.
+const normalizeMarkdown = (text) => {
+  if (!text || text.indexOf("|") === -1) return text;
+  // Split a delimiter row that is glued to the header: "...col | |---|---|" -> newline before "|---"
+  return text.replace(/\|[ \t]*(\|[ \t]*:?-{2,})/g, "|\n$1");
 };
 
 // Strip markdown so speech is clean
@@ -626,7 +645,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", maxWidth: "82%" }}>
                       <div className="botBubble" style={{ ...S.botBubble, maxWidth: "100%" }}>
-                        <ReactMarkdown components={MD}>{m.content}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD}>{normalizeMarkdown(m.content)}</ReactMarkdown>
                       </div>
                       {i > 0 && (
                         <div style={S.fbRow}>
