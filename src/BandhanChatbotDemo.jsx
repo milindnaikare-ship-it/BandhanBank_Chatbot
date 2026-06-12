@@ -471,7 +471,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
         .join("\n") || "Sorry, I had trouble responding. Please try again, or call our 24x7 helpline 1800 258 8181.";
       setMessages((m) => {
         const arr = [...m, { role: "assistant", content: reply }];
-        if (voiceModeRef.current === "on" && TTS_SUPPORTED) setTimeout(() => speak(reply, arr.length - 1), 60);
+        if (voiceModeRef.current === "on") setTimeout(() => speak(reply, arr.length - 1), 60);
         return arr;
       });
     } catch {
@@ -520,7 +520,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {mode && TTS_SUPPORTED && (
+          {mode && (
             <button onClick={cycleVoice} style={S.voiceBtn} title={voiceTitle} aria-label={voiceTitle}>
               <FontAwesomeIcon icon={voiceIcon} />
             </button>
@@ -647,7 +647,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
                       </div>
                       {i > 0 && (
                         <div style={S.fbRow}>
-                          {voiceMode !== "off" && TTS_SUPPORTED && (
+                          {voiceMode !== "off" && (
                             <button
                               style={S.listenBtn}
                               title={speakingIdx === i ? "Stop" : "Listen to this reply"}
