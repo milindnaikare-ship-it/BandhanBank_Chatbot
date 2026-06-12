@@ -282,15 +282,29 @@ const normalizeMarkdown = (text) => {
   return text.replace(/\|[ \t]*(\|[ \t]*:?-{2,})/g, "|\n$1");
 };
 
-// Strip markdown so speech is clean
-const stripForSpeech = (text) =>
-  text
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/\[(.*?)\]\(.*?\)/g, "$1")
-    .replace(/[#*_`>|~]/g, " ")
-    .replace(/\|/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+// Strip markdown so speech is clean: tables become prose, emojis & symbols removed
+const stripForSpeech = (text) => {
+  let s = text;
+  // Remove fenced code blocks entirely
+  s = s.replace(/```[\s\S]*?```/g, " ");
+  // Convert table rows to readable prose ("Col1: val1, Col2: val2.")
+  s = s.replace(/^\s*\|(.+)\|\s*$/gm, (_, row) => {
+    const cells = row.split("|").map((c) => c.trim()).filter(Boolean);
+    // Skip separator rows like |---|---|
+    if (!cells.length || cells.every((c) => /^:?-+:?$/.test(c))) return "";
+    return cells.join(", ") + ".";
+  });
+  // Links — keep the visible label
+  s = s.replace(/\[(.*?)\]\(.*?\)/g, "$1");
+  // Remaining markdown symbols
+  s = s.replace(/[#*_`>|~]/g, " ");
+  // Emojis & pictographs (emoticons, symbols, dingbats, transport, flags)
+  s = s.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/gu, "");
+  // Variation selectors & zero-width joiner used in compound emoji sequences
+  s = s.replace(/[\u{FE00}-\u{FE0F}\u{200D}]/gu, "");
+  // Collapse whitespace
+  return s.replace(/\s+/g, " ").trim();
+};
 
 export default function BandhanChatbotDemo({ embedded = false }) {
   const [mode, setMode] = useState(null);
