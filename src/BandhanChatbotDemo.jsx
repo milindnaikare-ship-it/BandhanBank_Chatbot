@@ -266,7 +266,6 @@ Address him by name (Mr. Naikare or Milind) naturally but not in every message.
 `;
 
 const STT_SUPPORTED = typeof window !== "undefined" && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-const TTS_SUPPORTED = typeof window !== "undefined" && "speechSynthesis" in window;
 
 // Pick a TTS language from the script of the reply text (multilingual output)
 const detectTtsLang = (text, langCode) => {
@@ -314,7 +313,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
 
   const endRef = useRef(null);
   const voiceModeRef = useRef("on");
-  const voicesRef = useRef([]);
+  const audioRef = useRef(null);
   const recognitionRef = useRef(null);
   const downCountRef = useRef(0); // consecutive thumbs-down counter
 
@@ -327,35 +326,34 @@ export default function BandhanChatbotDemo({ embedded = false }) {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading, mode, authStep]);
 
-  // Preload TTS voices
-  useEffect(() => {
-    if (!TTS_SUPPORTED) return;
-    const load = () => { voicesRef.current = window.speechSynthesis.getVoices(); };
-    load();
-    window.speechSynthesis.onvoiceschanged = load;
-    return () => { try { window.speechSynthesis.onvoiceschanged = null; window.speechSynthesis.cancel(); } catch { /* noop */ } };
-  }, []);
+  // ---- Text to speech (Google Cloud TTS) ----
+  const stopSpeaking = () => {
+    try { audioRef.current?.pause(); audioRef.current = null; } catch { /* noop */ }
+    setSpeakingIdx(null);
+  };
 
-  // ---- Text to speech ----
-  const stopSpeaking = () => { try { window.speechSynthesis?.cancel(); } catch { /* noop */ } setSpeakingIdx(null); };
-
-  const speak = (text, idx) => {
-    if (!TTS_SUPPORTED || voiceModeRef.current === "off") return;
+  const speak = async (text, idx) => {
+    if (voiceModeRef.current === "off") return;
     const clean = stripForSpeech(text);
     if (!clean) return;
+    stopSpeaking();
+    setSpeakingIdx(idx);
     try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(clean);
-      const tl = detectTtsLang(text, langRef.current);
-      u.lang = tl;
-      const vs = voicesRef.current.length ? voicesRef.current : window.speechSynthesis.getVoices();
-      const match = vs.find((v) => v.lang === tl) || vs.find((v) => v.lang && v.lang.startsWith(tl.split("-")[0]));
-      if (match) u.voice = match;
-      u.onend = () => setSpeakingIdx((s) => (s === idx ? null : s));
-      u.onerror = () => setSpeakingIdx((s) => (s === idx ? null : s));
-      setSpeakingIdx(idx);
-      window.speechSynthesis.speak(u);
-    } catch { /* noop */ }
+      const langCode = detectTtsLang(text, langRef.current);
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: clean, langCode }),
+      });
+      if (!res.ok) { setSpeakingIdx(null); return; }
+      const { audioContent } = await res.json();
+      if (!audioContent) { setSpeakingIdx(null); return; }
+      const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+      audioRef.current = audio;
+      audio.onended = () => setSpeakingIdx((s) => (s === idx ? null : s));
+      audio.onerror = () => setSpeakingIdx((s) => (s === idx ? null : s));
+      audio.play();
+    } catch { setSpeakingIdx(null); }
   };
 
   // ---- Speech to text (Indian English) ----
