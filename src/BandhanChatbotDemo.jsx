@@ -850,7 +850,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
         </>
       )}
 
-      {servicesOpen && <BankingServices onClose={() => setServicesOpen(false)} onComplete={onServiceComplete} />}
+      {servicesOpen && <BankingServices lang={language} onClose={() => setServicesOpen(false)} onComplete={onServiceComplete} />}
     </div>
   );
 }

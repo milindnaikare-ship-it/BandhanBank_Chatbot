@@ -12,6 +12,7 @@ import {
   maskAcct, maskCard, inr, isMinor, isSenior, refNo, validIfsc, ifscLookup,
   validatePin, suggestMode, fdMaturity, fdPayout, rdMaturity, addMonths, fmtDate,
 } from "./mockBank";
+import { makeTr, relLabel } from "./bankingI18n";
 
 // ===========================================================================
 // Shared UI primitives
@@ -51,19 +52,22 @@ const bs = {
 const Notice = ({ kind = "info", children }) => {
   const map = { info: ["#EEF6FF", "#1E4E8C"], warn: ["#FFF6E8", C.warn], ok: ["#EAF7EF", C.ok], err: ["#FDEEF0", C.accent] };
   const [bg, fg] = map[kind] || map.info;
-  const icon = kind === "ok" ? faCircleCheck : kind === "err" ? faTriangleExclamation : faTriangleExclamation;
+  const icon = kind === "ok" ? faCircleCheck : faTriangleExclamation;
   return <div style={{ ...bs.notice, background: bg, color: fg }}><FontAwesomeIcon icon={icon} style={{ marginTop: 2 }} /><div>{children}</div></div>;
 };
 
-const SummaryCard = ({ rows }) => (
-  <div style={bs.sumCard}>
-    {rows.filter(Boolean).map(([k, v], i) => (
-      <div key={i} style={{ ...bs.sumRow, ...(i === rows.filter(Boolean).length - 1 ? { borderBottom: "none" } : {}) }}>
-        <span style={bs.sumKey}>{k}</span><span style={bs.sumVal}>{v}</span>
-      </div>
-    ))}
-  </div>
-);
+const SummaryCard = ({ rows }) => {
+  const filtered = rows.filter(Boolean);
+  return (
+    <div style={bs.sumCard}>
+      {filtered.map(([k, v], i) => (
+        <div key={i} style={{ ...bs.sumRow, ...(i === filtered.length - 1 ? { borderBottom: "none" } : {}) }}>
+          <span style={bs.sumKey}>{k}</span><span style={bs.sumVal}>{v}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const Field = ({ label, error, children }) => (
   <div>
@@ -85,7 +89,7 @@ const SecureInput = ({ len, value, onChange, autoFocus }) => (
 );
 
 // Reusable OTP step: enforces max attempts then locks (brief §2 step-up auth).
-const OtpGate = ({ purpose, onVerified, onCancel }) => {
+const OtpGate = ({ tr, purpose, onVerified, onCancel }) => {
   const [otp, setOtp] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [error, setError] = useState("");
@@ -95,42 +99,42 @@ const OtpGate = ({ purpose, onVerified, onCancel }) => {
     return (
       <div style={{ textAlign: "center", padding: "10px 0" }}>
         <FontAwesomeIcon icon={faLock} style={{ fontSize: 34, color: C.accent }} />
-        <p style={{ fontWeight: 700, marginTop: 12 }}>Flow locked for your security</p>
-        <p style={{ color: C.muted, fontSize: 13 }}>Too many incorrect OTP attempts. Please try again later or call our 24x7 helpline <strong>1800 258 8181</strong>.</p>
-        <button style={bs.primary} onClick={onCancel}>Close</button>
+        <p style={{ fontWeight: 700, marginTop: 12 }}>{tr("lockedTitle")}</p>
+        <p style={{ color: C.muted, fontSize: 13 }}>{tr("lockedBody")}</p>
+        <button style={bs.primary} onClick={onCancel}>{tr("close")}</button>
       </div>
     );
   }
   const submit = () => {
-    if (otp.length !== 6) { setError("Enter the 6-digit OTP."); return; }
+    if (otp.length !== 6) { setError(tr("otpNeed6")); return; }
     if (otp === DEMO_OTP) { onVerified(); return; }
     const n = attempts + 1;
     setAttempts(n); setOtp("");
     if (n >= MAX_OTP_ATTEMPTS) setLocked(true);
-    else setError(`Incorrect OTP. ${MAX_OTP_ATTEMPTS - n} attempt(s) left. (Demo OTP: 123456)`);
+    else setError(tr("otpWrong", MAX_OTP_ATTEMPTS - n));
   };
   return (
     <div>
-      <Notice kind="info">A one-time password has been sent to your registered mobile {CUSTOMER.mobileMasked} to authorise <strong>{purpose}</strong>. <em>(Demo OTP: 123456)</em></Notice>
-      <label style={bs.label}>Enter OTP</label>
+      <Notice kind="info">{tr("otpSent", purpose, CUSTOMER.mobileMasked)} <em>{tr("otpDemo")}</em></Notice>
+      <label style={bs.label}>{tr("enterOtp")}</label>
       <SecureInput len={6} value={otp} onChange={setOtp} autoFocus />
       {error && <div style={bs.err}>{error}</div>}
-      <button style={bs.primary} onClick={submit}>Verify &amp; proceed</button>
-      <button style={bs.ghost} onClick={onCancel}>Cancel</button>
+      <button style={bs.primary} onClick={submit}>{tr("verifyProceed")}</button>
+      <button style={bs.ghost} onClick={onCancel}>{tr("cancel")}</button>
     </div>
   );
 };
 
-const Success = ({ title, refId: reference, rows, note, onDone }) => (
+const Success = ({ tr, title, refId: reference, rows, note, onDone }) => (
   <div>
     <div style={{ textAlign: "center", padding: "6px 0 2px" }}>
       <FontAwesomeIcon icon={faCircleCheck} style={{ fontSize: 44, color: C.ok }} />
       <p style={{ fontWeight: 700, fontSize: 17, marginTop: 10 }}>{title}</p>
-      {reference && <p style={{ color: C.muted, fontSize: 13 }}>Reference: <strong style={{ color: C.text }}>{reference}</strong></p>}
+      {reference && <p style={{ color: C.muted, fontSize: 13 }}>{tr("reference")}: <strong style={{ color: C.text }}>{reference}</strong></p>}
     </div>
     {rows && <SummaryCard rows={rows} />}
     {note && <Notice kind="warn">{note}</Notice>}
-    <button style={bs.primary} onClick={onDone}>Done</button>
+    <button style={bs.primary} onClick={onDone}>{tr("done")}</button>
   </div>
 );
 
@@ -153,16 +157,16 @@ const useNow = (ms = 20000) => {
   return now;
 };
 
-const statusPill = (status) => {
-  if (status === "active") return <span style={bs.pill("#EAF7EF", C.ok)}>Active</span>;
-  if (status === "cooling") return <span style={bs.pill("#FFF6E8", C.warn)}>Cooling</span>;
-  return <span style={bs.pill("#F0E7E0", C.muted)}>Inactive</span>;
+const statusPill = (status, tr) => {
+  if (status === "active") return <span style={bs.pill("#EAF7EF", C.ok)}>{tr("active")}</span>;
+  if (status === "cooling") return <span style={bs.pill("#FFF6E8", C.warn)}>{tr("cooling")}</span>;
+  return <span style={bs.pill("#F0E7E0", C.muted)}>{tr("inactive")}</span>;
 };
 
 // ===========================================================================
 // Feature 1 — Set / Reset Debit Card PIN
 // ===========================================================================
-function PinFlow({ cards, onClose, onComplete }) {
+function PinFlow({ tr, cards, onClose, onComplete }) {
   const [step, setStep] = useState("select");
   const [card, setCard] = useState(null);
   const [expiry, setExpiry] = useState("");
@@ -177,28 +181,28 @@ function PinFlow({ cards, onClose, onComplete }) {
     setCard(c); setStep("expiry");
   };
   const checkExpiry = () => {
-    if (!/^\d{2}\/\d{2}$/.test(expiry)) { setExpErr("Enter expiry as MM/YY."); return; }
-    if (expiry !== card.expiry) { setExpErr("Card expiry does not match our records."); return; }
+    if (!/^\d{2}\/\d{2}$/.test(expiry)) { setExpErr(tr("pinExpiryFmt")); return; }
+    if (expiry !== card.expiry) { setExpErr(tr("pinExpiryMismatch")); return; }
     setExpErr(""); setStep("otp");
   };
   const setNewPin = () => {
     const e = validatePin(pin, card.pinLen);
     if (e) { setPinErr(e); return; }
-    if (pin !== pin2) { setPinErr("The two PINs do not match."); return; }
+    if (pin !== pin2) { setPinErr(tr("pinMismatch")); return; }
     const r = refNo("SRPIN");
     setPinErr(""); setReference(r); setStep("done");
     // NB: pin is never included in the completion message / transcript.
-    onComplete(`✅ Debit card PIN updated for card ${maskCard(card.last4)}. Service reference: ${r}`);
+    onComplete(tr("pinMsg", maskCard(card.last4), r));
   };
 
   return (
     <>
-      <FlowHeader title="Set / Reset Debit Card PIN" onClose={onClose}
+      <FlowHeader title={tr("pinTitle")} onClose={onClose}
         onBack={step === "select" ? null : () => setStep(step === "done" ? "done" : "select")} />
       <div style={bs.body}>
         {step === "select" && (
           <>
-            <p style={{ color: C.muted, fontSize: 13, margin: "0 0 12px" }}>Select the debit card you want to set or reset the PIN for.</p>
+            <p style={{ color: C.muted, fontSize: 13, margin: "0 0 12px" }}>{tr("pinSelect")}</p>
             {cards.map((c) => {
               const disabled = c.status !== "ACTIVE";
               return (
@@ -208,41 +212,41 @@ function PinFlow({ cards, onClose, onComplete }) {
                     <div style={{ fontWeight: 700, fontSize: 14 }}>{c.network}</div>
                     <div style={{ fontSize: 12.5, color: C.muted }}>{maskCard(c.last4)} · Exp {c.expiry}</div>
                   </div>
-                  {c.status === "ACTIVE" ? statusPill("active") : <span style={bs.pill("#FDEEF0", C.accent)}>{c.status}</span>}
+                  {c.status === "ACTIVE" ? statusPill("active", tr) : <span style={bs.pill("#FDEEF0", C.accent)}>{c.status}</span>}
                 </button>
               );
             })}
-            <Notice kind="info">Blocked, hotlisted or expired cards cannot have their PIN changed here.</Notice>
+            <Notice kind="info">{tr("pinBlocked")}</Notice>
           </>
         )}
         {step === "expiry" && (
           <>
-            <SummaryCard rows={[["Card", card.network], ["Number", maskCard(card.last4)]]} />
-            <Field label="Card expiry (MM/YY) — identity check" error={expErr}>
+            <SummaryCard rows={[[tr("card"), card.network], [tr("number"), maskCard(card.last4)]]} />
+            <Field label={tr("pinExpiryLabel")} error={expErr}>
               <input style={bs.input} value={expiry} placeholder="MM/YY" maxLength={5}
                 onChange={(e) => setExpiry(e.target.value.replace(/[^\d/]/g, "").slice(0, 5))} />
             </Field>
-            <button style={bs.primary} onClick={checkExpiry}>Continue</button>
+            <button style={bs.primary} onClick={checkExpiry}>{tr("continue")}</button>
           </>
         )}
         {step === "otp" && (
-          <OtpGate purpose="your PIN reset" onCancel={onClose} onVerified={() => setStep("setpin")} />
+          <OtpGate tr={tr} purpose={tr("pinPurpose")} onCancel={onClose} onVerified={() => setStep("setpin")} />
         )}
         {step === "setpin" && (
           <>
-            <Notice kind="info">Enter your new {card.pinLen}-digit PIN using the secure keypad. It is never shown in the chat or stored in logs.</Notice>
-            <label style={bs.label}>New PIN</label>
+            <Notice kind="info">{tr("pinSetNote", card.pinLen)}</Notice>
+            <label style={bs.label}>{tr("pinNew")}</label>
             <SecureInput len={card.pinLen} value={pin} onChange={setPin} autoFocus />
-            <label style={bs.label}>Confirm new PIN</label>
+            <label style={bs.label}>{tr("pinConfirm")}</label>
             <SecureInput len={card.pinLen} value={pin2} onChange={setPin2} />
             {pinErr && <div style={bs.err}>{pinErr}</div>}
-            <button style={bs.primary} onClick={setNewPin}>Set PIN</button>
+            <button style={bs.primary} onClick={setNewPin}>{tr("pinSetBtn")}</button>
           </>
         )}
         {step === "done" && (
-          <Success title="PIN set successfully" refId={reference}
-            rows={[["Card", card.network], ["Number", maskCard(card.last4)]]}
-            note="For your security the new PIN is effective immediately. If you did not initiate this, call 1800 258 8181." onDone={onClose} />
+          <Success tr={tr} title={tr("pinDoneTitle")} refId={reference}
+            rows={[[tr("card"), card.network], [tr("number"), maskCard(card.last4)]]}
+            note={tr("pinDoneNote")} onDone={onClose} />
         )}
       </div>
     </>
@@ -252,7 +256,7 @@ function PinFlow({ cards, onClose, onComplete }) {
 // ===========================================================================
 // Feature 2 — Nominee Addition / Modification
 // ===========================================================================
-function NomineeFlow({ nominee, setNominee, onClose, onComplete }) {
+function NomineeFlow({ tr, lang, nominee, setNominee, onClose, onComplete }) {
   const [step, setStep] = useState("view");
   const [form, setForm] = useState(nominee || { name: "", relationship: "", dob: "", address: "", guardian: null });
   const [copyAddr, setCopyAddr] = useState(false);
@@ -265,17 +269,17 @@ function NomineeFlow({ nominee, setNominee, onClose, onComplete }) {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim() || /\d/.test(form.name)) e.name = "Enter a valid name (letters only).";
-    if (!form.relationship) e.relationship = "Select a relationship.";
-    if (!form.dob) e.dob = "Enter date of birth.";
-    else if (new Date(form.dob) > new Date()) e.dob = "Date of birth cannot be in the future.";
+    if (!form.name.trim() || /\d/.test(form.name)) e.name = tr("nomNameErr");
+    if (!form.relationship) e.relationship = tr("relErr");
+    if (!form.dob) e.dob = tr("dobErr");
+    else if (new Date(form.dob) > new Date()) e.dob = tr("dobFuture");
     const addr = copyAddr ? CUSTOMER.address : form.address;
-    if (!addr.trim()) e.address = "Enter the nominee's address.";
+    if (!addr.trim()) e.address = tr("nomAddrErr");
     if (minor) {
       const g = form.guardian || {};
-      if (!g.name?.trim() || /\d/.test(g.name)) e.gname = "Guardian name is required for a minor nominee.";
-      if (!g.relationship) e.grel = "Guardian relationship is required.";
-      if (!g.address?.trim()) e.gaddr = "Guardian address is required.";
+      if (!g.name?.trim() || /\d/.test(g.name)) e.gname = tr("gNameErr");
+      if (!g.relationship) e.grel = tr("gRelErr");
+      if (!g.address?.trim()) e.gaddr = tr("gAddrErr");
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -285,99 +289,98 @@ function NomineeFlow({ nominee, setNominee, onClose, onComplete }) {
     const finalForm = { ...form, address: copyAddr ? CUSTOMER.address : form.address, guardian: minor ? form.guardian : null };
     setNominee(finalForm);
     const r = refNo("SRNOM"); setReference(r);
-    onComplete(`✅ Nominee ${nominee ? "updated" : "added"}: ${finalForm.name} (${finalForm.relationship}). Reference: ${r}. Pending branch verification.`);
+    onComplete(tr("nomMsg", nominee ? tr("updated") : tr("added"), finalForm.name, relLabel(lang, finalForm.relationship), r));
     setStep("done");
   };
 
   return (
     <>
-      <FlowHeader title="Nominee Management" onClose={onClose}
+      <FlowHeader title={tr("nomTitle")} onClose={onClose}
         onBack={step === "view" ? null : () => setStep("view")} />
       <div style={bs.body}>
         {step === "view" && (
           <>
             {nominee ? (
               <>
-                <p style={{ color: C.muted, fontSize: 13, margin: "0 0 4px" }}>Current nominee on Savings A/c {maskAcct("6789")}:</p>
+                <p style={{ color: C.muted, fontSize: 13, margin: "0 0 4px" }}>{tr("nomCurrent", maskAcct("6789"))}</p>
                 <SummaryCard rows={[
-                  ["Name", nominee.name],
-                  ["Relationship", nominee.relationship],
-                  ["Date of birth", "XX-XX-" + (nominee.dob || "").slice(0, 4)],
+                  [tr("name"), nominee.name],
+                  [tr("relationship"), relLabel(lang, nominee.relationship)],
+                  [tr("dob"), "XX-XX-" + (nominee.dob || "").slice(0, 4)],
                 ]} />
               </>
-            ) : <Notice kind="warn">No nominee is currently registered on this account. Adding one is strongly recommended.</Notice>}
+            ) : <Notice kind="warn">{tr("nomNone")}</Notice>}
             <button style={bs.primary} onClick={() => { setForm(nominee || { name: "", relationship: "", dob: "", address: "", guardian: null }); setStep("form"); }}>
-              {nominee ? "Modify nominee" : "Add nominee"}
+              {nominee ? tr("nomModify") : tr("nomAdd")}
             </button>
-            <Notice kind="info">This account supports a single nominee. Nomination changes are registered digitally and confirmed after branch verification.</Notice>
+            <Notice kind="info">{tr("nomSingle")}</Notice>
           </>
         )}
         {step === "form" && (
           <>
-            <Field label="Nominee full name" error={errors.name}>
+            <Field label={tr("nomName")} error={errors.name}>
               <input style={bs.input} value={form.name} onChange={(e) => set("name", e.target.value)} />
             </Field>
-            <Field label="Relationship" error={errors.relationship}>
+            <Field label={tr("relationship")} error={errors.relationship}>
               <select style={bs.select} value={form.relationship} onChange={(e) => set("relationship", e.target.value)}>
-                <option value="">Select…</option>
-                {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
+                <option value="">{tr("selectOpt")}</option>
+                {RELATIONSHIPS.map((r) => <option key={r} value={r}>{relLabel(lang, r)}</option>)}
               </select>
             </Field>
-            <Field label="Date of birth" error={errors.dob}>
+            <Field label={tr("dob")} error={errors.dob}>
               <input type="date" style={bs.input} value={form.dob} onChange={(e) => set("dob", e.target.value)} />
             </Field>
-            {minor && <Notice kind="warn">Nominee is a minor — guardian details are mandatory.</Notice>}
-            <Field label="Nominee address" error={errors.address}>
+            {minor && <Notice kind="warn">{tr("minorNote")}</Notice>}
+            <Field label={tr("nomAddr")} error={errors.address}>
               <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, marginBottom: 6, color: C.muted }}>
                 <input type="checkbox" checked={copyAddr} onChange={(e) => setCopyAddr(e.target.checked)} />
-                Same as account holder's address
+                {tr("sameAddr")}
               </label>
               {!copyAddr && <textarea style={{ ...bs.input, minHeight: 60 }} value={form.address} onChange={(e) => set("address", e.target.value)} />}
               {copyAddr && <div style={{ fontSize: 13, color: C.text }}>{CUSTOMER.address}</div>}
             </Field>
             {minor && (
               <>
-                <Field label="Guardian name" error={errors.gname}>
+                <Field label={tr("gName")} error={errors.gname}>
                   <input style={bs.input} value={form.guardian?.name || ""} onChange={(e) => setG("name", e.target.value)} />
                 </Field>
-                <Field label="Guardian relationship to nominee" error={errors.grel}>
+                <Field label={tr("gRel")} error={errors.grel}>
                   <select style={bs.select} value={form.guardian?.relationship || ""} onChange={(e) => setG("relationship", e.target.value)}>
-                    <option value="">Select…</option>
-                    {RELATIONSHIPS.map((r) => <option key={r} value={r}>{r}</option>)}
+                    <option value="">{tr("selectOpt")}</option>
+                    {RELATIONSHIPS.map((r) => <option key={r} value={r}>{relLabel(lang, r)}</option>)}
                   </select>
                 </Field>
-                <Field label="Guardian address" error={errors.gaddr}>
+                <Field label={tr("gAddr")} error={errors.gaddr}>
                   <textarea style={{ ...bs.input, minHeight: 60 }} value={form.guardian?.address || ""} onChange={(e) => setG("address", e.target.value)} />
                 </Field>
               </>
             )}
-            <button style={bs.primary} onClick={toReview}>Review changes</button>
+            <button style={bs.primary} onClick={toReview}>{tr("reviewChanges")}</button>
           </>
         )}
         {step === "review" && (
           <>
-            <p style={{ fontWeight: 700, margin: "0 0 8px" }}>Confirm nominee details</p>
+            <p style={{ fontWeight: 700, margin: "0 0 8px" }}>{tr("confirmNominee")}</p>
             {nominee && (
               <>
-                <p style={{ ...bs.label, marginTop: 0 }}>Before</p>
-                <SummaryCard rows={[["Name", nominee.name], ["Relationship", nominee.relationship]]} />
-                <p style={bs.label}>After</p>
+                <p style={{ ...bs.label, marginTop: 0 }}>{tr("before")}</p>
+                <SummaryCard rows={[[tr("name"), nominee.name], [tr("relationship"), relLabel(lang, nominee.relationship)]]} />
+                <p style={bs.label}>{tr("after")}</p>
               </>
             )}
             <SummaryCard rows={[
-              ["Name", form.name],
-              ["Relationship", form.relationship],
-              ["Date of birth", fmtDate(new Date(form.dob))],
-              ["Address", copyAddr ? CUSTOMER.address : form.address],
-              minor && ["Guardian", `${form.guardian?.name} (${form.guardian?.relationship})`],
+              [tr("name"), form.name],
+              [tr("relationship"), relLabel(lang, form.relationship)],
+              [tr("dob"), fmtDate(new Date(form.dob))],
+              [tr("address"), copyAddr ? CUSTOMER.address : form.address],
+              minor && [tr("guardian"), `${form.guardian?.name} (${relLabel(lang, form.guardian?.relationship)})`],
             ]} />
-            <button style={bs.primary} onClick={() => setStep("otp")}>Confirm &amp; get OTP</button>
+            <button style={bs.primary} onClick={() => setStep("otp")}>{tr("confirmOtp")}</button>
           </>
         )}
-        {step === "otp" && <OtpGate purpose="the nominee update" onCancel={onClose} onVerified={commit} />}
+        {step === "otp" && <OtpGate tr={tr} purpose={tr("nomPurpose")} onCancel={onClose} onVerified={commit} />}
         {step === "done" && (
-          <Success title="Nomination request registered" refId={reference}
-            note="Your nomination is registered and will be activated after branch verification (typically within 3 working days). You will be notified once confirmed." onDone={onClose} />
+          <Success tr={tr} title={tr("nomDoneTitle")} refId={reference} note={tr("nomDoneNote")} onDone={onClose} />
         )}
       </div>
     </>
@@ -387,7 +390,7 @@ function NomineeFlow({ nominee, setNominee, onClose, onComplete }) {
 // ===========================================================================
 // Feature 3 — Manage Beneficiaries
 // ===========================================================================
-function BeneficiaryFlow({ beneficiaries, setBeneficiaries, onClose, onComplete }) {
+function BeneficiaryFlow({ tr, beneficiaries, setBeneficiaries, onClose, onComplete }) {
   const [step, setStep] = useState("list");
   const [target, setTarget] = useState(null);          // for edit/delete
   const [reference, setReference] = useState("");
@@ -411,14 +414,14 @@ function BeneficiaryFlow({ beneficiaries, setBeneficiaries, onClose, onComplete 
 
   const validateAdd = () => {
     const e = {};
-    if (!f.name.trim() || /\d/.test(f.name)) e.name = "Enter a valid beneficiary name.";
-    if (!/^\d{9,18}$/.test(f.acct)) e.acct = "Enter a valid account number (9–18 digits).";
-    if (f.acct !== f.acct2) e.acct2 = "Account numbers do not match.";
-    if (!validIfsc(f.ifsc)) e.ifsc = "Enter a valid IFSC (e.g. HDFC0000123).";
-    if (!f.modes.length) e.modes = "Select at least one transfer type.";
-    if (f.limit && (!/^\d+$/.test(f.limit) || Number(f.limit) <= 0)) e.limit = "Enter a valid limit amount.";
-    if (beneficiaries.some((b) => b.account === f.acct && b.ifsc.toUpperCase() === f.ifsc.toUpperCase())) e.acct = "This beneficiary already exists.";
-    if (beneficiaries.length >= MAX_BENEFICIARIES) e.name = `You have reached the maximum of ${MAX_BENEFICIARIES} beneficiaries.`;
+    if (!f.name.trim() || /\d/.test(f.name)) e.name = tr("benNameErr");
+    if (!/^\d{9,18}$/.test(f.acct)) e.acct = tr("acctErr");
+    if (f.acct !== f.acct2) e.acct2 = tr("acctReErr");
+    if (!validIfsc(f.ifsc)) e.ifsc = tr("ifscErr");
+    if (!f.modes.length) e.modes = tr("modesErr");
+    if (f.limit && (!/^\d+$/.test(f.limit) || Number(f.limit) <= 0)) e.limit = tr("limitErr");
+    if (beneficiaries.some((b) => b.account === f.acct && b.ifsc.toUpperCase() === f.ifsc.toUpperCase())) e.acct = tr("benDup");
+    if (beneficiaries.length >= MAX_BENEFICIARIES) e.name = tr("benMax", MAX_BENEFICIARIES);
     setFe(e);
     return Object.keys(e).length === 0;
   };
@@ -435,120 +438,120 @@ function BeneficiaryFlow({ beneficiaries, setBeneficiaries, onClose, onComplete 
     };
     setBeneficiaries((list) => [...list, b]);
     const active = new Date(created + BENEFICIARY_COOLING_MS);
-    setActivationMsg(`Active from ${active.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} today. For the first 24 hours transfers to this payee are capped at ₹50,000.`);
+    setActivationMsg(tr("benActivation", active.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })));
     const r = refNo("SRBEN"); setReference(r);
-    onComplete(`✅ Beneficiary added: ${b.name} (${b.bank}, ${maskAcct(b.last4)}). Cooling period applies. Reference: ${r}`);
+    onComplete(tr("benAddMsg", b.name, b.bank, maskAcct(b.last4), r));
     setStep("addDone");
   };
 
   const doDelete = () => {
     setBeneficiaries((list) => list.filter((b) => b.id !== target.id));
     const r = refNo("SRBEN"); setReference(r);
-    onComplete(`✅ Beneficiary removed: ${target.name} (${maskAcct(target.last4)}). Reference: ${r}`);
+    onComplete(tr("benDelMsg", target.name, maskAcct(target.last4), r));
     setStep("delDone");
   };
 
   return (
     <>
-      <FlowHeader title="Manage Beneficiaries" onClose={onClose}
+      <FlowHeader title={tr("benTitle")} onClose={onClose}
         onBack={step === "list" ? null : () => setStep("list")} />
       <div style={bs.body}>
         {step === "list" && (
           <>
-            {withStatus.length === 0 && <Notice kind="info">You have no saved beneficiaries yet.</Notice>}
+            {withStatus.length === 0 && <Notice kind="info">{tr("benNone")}</Notice>}
             {withStatus.map((b) => (
               <div key={b.id} style={{ ...bs.rowBtn, cursor: "default", flexDirection: "column", alignItems: "stretch", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14 }}>{b.nickname} {statusPill(b.status)}</div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>{b.nickname} {statusPill(b.status, tr)}</div>
                     <div style={{ fontSize: 12.5, color: C.muted }}>{b.bank} · {maskAcct(b.last4)} · {b.modes.join(", ")}</div>
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button style={{ ...bs.ghost, marginTop: 0, flex: 1, padding: "7px" }} onClick={() => { setTarget(b); setStep("edit"); }}>Edit</button>
-                  <button style={{ ...bs.ghost, marginTop: 0, flex: 1, padding: "7px", color: C.accent, borderColor: C.accent }} onClick={() => { setTarget(b); setStep("delConfirm"); }}>Delete</button>
+                  <button style={{ ...bs.ghost, marginTop: 0, flex: 1, padding: "7px" }} onClick={() => { setTarget(b); setStep("edit"); }}>{tr("edit")}</button>
+                  <button style={{ ...bs.ghost, marginTop: 0, flex: 1, padding: "7px", color: C.accent, borderColor: C.accent }} onClick={() => { setTarget(b); setStep("delConfirm"); }}>{tr("delete")}</button>
                 </div>
               </div>
             ))}
-            <button style={bs.primary} onClick={() => { setF({ name: "", acct: "", acct2: "", ifsc: "", nickname: "", limit: "", modes: [] }); setFe({}); setLookup(null); setVerifiedName(null); setStep("add"); }}>Add new beneficiary</button>
+            <button style={bs.primary} onClick={() => { setF({ name: "", acct: "", acct2: "", ifsc: "", nickname: "", limit: "", modes: [] }); setFe({}); setLookup(null); setVerifiedName(null); setStep("add"); }}>{tr("addNew")}</button>
           </>
         )}
 
         {step === "add" && (
           <>
-            <Field label="Beneficiary name" error={fe.name}><input style={bs.input} value={f.name} onChange={(e) => setField("name", e.target.value)} /></Field>
-            <Field label="Account number" error={fe.acct}><input style={bs.input} inputMode="numeric" value={f.acct} onChange={(e) => setField("acct", e.target.value.replace(/\D/g, ""))} /></Field>
-            <Field label="Re-enter account number" error={fe.acct2}><input style={bs.input} inputMode="numeric" value={f.acct2} onChange={(e) => setField("acct2", e.target.value.replace(/\D/g, ""))} onPaste={(e) => e.preventDefault()} /></Field>
-            <Field label="IFSC" error={fe.ifsc}>
+            <Field label={tr("benName")} error={fe.name}><input style={bs.input} value={f.name} onChange={(e) => setField("name", e.target.value)} /></Field>
+            <Field label={tr("acctNum")} error={fe.acct}><input style={bs.input} inputMode="numeric" value={f.acct} onChange={(e) => setField("acct", e.target.value.replace(/\D/g, ""))} /></Field>
+            <Field label={tr("acctRe")} error={fe.acct2}><input style={bs.input} inputMode="numeric" value={f.acct2} onChange={(e) => setField("acct2", e.target.value.replace(/\D/g, ""))} onPaste={(e) => e.preventDefault()} /></Field>
+            <Field label={tr("ifsc")} error={fe.ifsc}>
               <div style={{ display: "flex", gap: 8 }}>
                 <input style={{ ...bs.input, textTransform: "uppercase" }} value={f.ifsc} onChange={(e) => { setField("ifsc", e.target.value.toUpperCase()); setLookup(null); }} />
-                <button style={{ ...bs.ghost, marginTop: 0, width: "auto", padding: "0 14px" }} onClick={doLookup}>Look up</button>
+                <button style={{ ...bs.ghost, marginTop: 0, width: "auto", padding: "0 14px" }} onClick={doLookup}>{tr("lookUp")}</button>
               </div>
               {lookup && <div style={{ fontSize: 12.5, color: C.ok, marginTop: 6 }}>{lookup.bank} · {lookup.branch}</div>}
             </Field>
-            <Field label="Transfer type" error={fe.modes}>
+            <Field label={tr("transferType")} error={fe.modes}>
               <div style={bs.checkRow}>
                 {TRANSFER_MODES.map((m) => <button key={m} type="button" style={bs.chk(f.modes.includes(m))} onClick={() => toggleMode(m)}>{m}</button>)}
               </div>
             </Field>
-            <Field label="Nickname (optional)"><input style={bs.input} value={f.nickname} onChange={(e) => setField("nickname", e.target.value)} /></Field>
-            <Field label="Per-transfer limit (optional)" error={fe.limit}><input style={bs.input} inputMode="numeric" value={f.limit} onChange={(e) => setField("limit", e.target.value.replace(/\D/g, ""))} /></Field>
-            <button style={bs.ghost} onClick={() => { if (/^\d{9,18}$/.test(f.acct)) setVerifiedName(pennyDropName(f.acct)); }}>Verify name (penny-drop)</button>
-            {verifiedName && <Notice kind="ok">Account holder name at bank: <strong>{verifiedName}</strong>. Please confirm this matches your intended payee.</Notice>}
-            <button style={bs.primary} onClick={toSummary}>Continue</button>
+            <Field label={tr("nickname")}><input style={bs.input} value={f.nickname} onChange={(e) => setField("nickname", e.target.value)} /></Field>
+            <Field label={tr("perLimit")} error={fe.limit}><input style={bs.input} inputMode="numeric" value={f.limit} onChange={(e) => setField("limit", e.target.value.replace(/\D/g, ""))} /></Field>
+            <button style={bs.ghost} onClick={() => { if (/^\d{9,18}$/.test(f.acct)) setVerifiedName(pennyDropName(f.acct)); }}>{tr("verifyName")}</button>
+            {verifiedName && <Notice kind="ok">{tr("verifyNameOk", verifiedName)}</Notice>}
+            <button style={bs.primary} onClick={toSummary}>{tr("continue")}</button>
           </>
         )}
         {step === "addSummary" && (
           <>
-            <p style={{ fontWeight: 700, margin: "0 0 4px" }}>Confirm new beneficiary</p>
+            <p style={{ fontWeight: 700, margin: "0 0 4px" }}>{tr("confirmNewBen")}</p>
             <SummaryCard rows={[
-              ["Name", f.name],
-              ["Bank", lookup?.bank],
-              ["Account", maskAcct(f.acct.slice(-4))],
-              ["IFSC", f.ifsc.toUpperCase()],
-              ["Transfer types", f.modes.join(", ")],
-              f.limit && ["Per-transfer limit", inr(f.limit)],
+              [tr("name"), f.name],
+              [tr("bank"), lookup?.bank],
+              [tr("account"), maskAcct(f.acct.slice(-4))],
+              [tr("ifsc"), f.ifsc.toUpperCase()],
+              [tr("transferTypes"), f.modes.join(", ")],
+              f.limit && [tr("perLimitShort"), inr(f.limit)],
             ]} />
-            <button style={bs.primary} onClick={() => setStep("addOtp")}>Confirm &amp; get OTP</button>
+            <button style={bs.primary} onClick={() => setStep("addOtp")}>{tr("confirmOtp")}</button>
           </>
         )}
-        {step === "addOtp" && <OtpGate purpose="adding this beneficiary" onCancel={onClose} onVerified={createBeneficiary} />}
+        {step === "addOtp" && <OtpGate tr={tr} purpose={tr("benPurpose")} onCancel={onClose} onVerified={createBeneficiary} />}
         {step === "addDone" && (
-          <Success title="Beneficiary added" refId={reference} note={activationMsg} onDone={() => setStep("list")} />
+          <Success tr={tr} title={tr("benDoneTitle")} refId={reference} note={activationMsg} onDone={() => setStep("list")} />
         )}
 
-        {step === "edit" && target && <EditBeneficiary target={target} setBeneficiaries={setBeneficiaries} onDone={(msg) => { onComplete(msg); setStep("list"); }} />}
+        {step === "edit" && target && <EditBeneficiary tr={tr} target={target} setBeneficiaries={setBeneficiaries} onDone={(msg) => { onComplete(msg); setStep("list"); }} />}
 
         {step === "delConfirm" && target && (
           <>
-            <Notice kind="err">You are about to permanently delete this beneficiary. Any scheduled transfers to them will fail.</Notice>
-            <SummaryCard rows={[["Name", target.name], ["Bank", target.bank], ["Account", maskAcct(target.last4)]]} />
-            <button style={{ ...bs.primary, background: C.accent }} onClick={() => setStep("delOtp")}>Delete &amp; get OTP</button>
-            <button style={bs.ghost} onClick={() => setStep("list")}>Cancel</button>
+            <Notice kind="err">{tr("delWarn")}</Notice>
+            <SummaryCard rows={[[tr("name"), target.name], [tr("bank"), target.bank], [tr("account"), maskAcct(target.last4)]]} />
+            <button style={{ ...bs.primary, background: C.accent }} onClick={() => setStep("delOtp")}>{tr("delGetOtp")}</button>
+            <button style={bs.ghost} onClick={() => setStep("list")}>{tr("cancel")}</button>
           </>
         )}
-        {step === "delOtp" && target && <OtpGate purpose="deleting this beneficiary" onCancel={() => setStep("list")} onVerified={doDelete} />}
+        {step === "delOtp" && target && <OtpGate tr={tr} purpose={tr("delPurpose")} onCancel={() => setStep("list")} onVerified={doDelete} />}
         {step === "delDone" && (
-          <Success title="Beneficiary removed" refId={reference} onDone={() => setStep("list")} />
+          <Success tr={tr} title={tr("benDelTitle")} refId={reference} onDone={() => setStep("list")} />
         )}
       </div>
     </>
   );
 }
 
-function EditBeneficiary({ target, setBeneficiaries, onDone }) {
+function EditBeneficiary({ tr, target, setBeneficiaries, onDone }) {
   const [nickname, setNickname] = useState(target.nickname);
   const [limit, setLimit] = useState(target.limit ? String(target.limit) : "");
   const save = () => {
     setBeneficiaries((list) => list.map((b) => b.id === target.id ? { ...b, nickname: nickname.trim() || b.name, limit: limit ? Number(limit) : null } : b));
-    onDone(`✅ Beneficiary updated: ${nickname || target.name} (${maskAcct(target.last4)}).`);
+    onDone(tr("benEditMsg", nickname || target.name, maskAcct(target.last4)));
   };
   return (
     <>
-      <Notice kind="info">Only the nickname and per-transfer limit can be edited. To change the account number, delete this payee and add a new one.</Notice>
-      <Field label="Nickname"><input style={bs.input} value={nickname} onChange={(e) => setNickname(e.target.value)} /></Field>
-      <Field label="Per-transfer limit (optional)"><input style={bs.input} inputMode="numeric" value={limit} onChange={(e) => setLimit(e.target.value.replace(/\D/g, ""))} /></Field>
-      <button style={bs.primary} onClick={save}>Save changes</button>
+      <Notice kind="info">{tr("editNote")}</Notice>
+      <Field label={tr("nicknamePlain")}><input style={bs.input} value={nickname} onChange={(e) => setNickname(e.target.value)} /></Field>
+      <Field label={tr("perLimit")}><input style={bs.input} inputMode="numeric" value={limit} onChange={(e) => setLimit(e.target.value.replace(/\D/g, ""))} /></Field>
+      <button style={bs.primary} onClick={save}>{tr("saveChanges")}</button>
     </>
   );
 }
@@ -556,7 +559,7 @@ function EditBeneficiary({ target, setBeneficiaries, onDone }) {
 // ===========================================================================
 // Feature 4 — Fund Transfer
 // ===========================================================================
-function TransferFlow({ accounts, setAccounts, beneficiaries, onClose, onComplete }) {
+function TransferFlow({ tr, accounts, setAccounts, beneficiaries, onClose, onComplete }) {
   const [step, setStep] = useState("source");
   const [source, setSource] = useState(null);
   const [payee, setPayee] = useState(null);          // {kind:'own'|'ben', ...}
@@ -576,10 +579,10 @@ function TransferFlow({ accounts, setAccounts, beneficiaries, onClose, onComplet
 
   const checkAmount = () => {
     const amt = Number(amount);
-    if (!amt || amt <= 0) return setAmtErr("Enter a valid amount."), false;
-    if (amt > source.balance) return setAmtErr(`Insufficient balance. Available: ${inr(source.balance)}.`), false;
-    if (amt > CHAT_TXN_LIMIT) return setAmtErr(`Amount exceeds the chat channel limit of ${inr(CHAT_TXN_LIMIT)} per transaction.`), false;
-    if (payee.kind === "ben" && payee.ben.limit && amt > payee.ben.limit) return setAmtErr(`Amount exceeds the limit set for this payee (${inr(payee.ben.limit)}).`), false;
+    if (!amt || amt <= 0) return setAmtErr(tr("amtInvalid")), false;
+    if (amt > source.balance) return setAmtErr(tr("amtInsufficient", inr(source.balance))), false;
+    if (amt > CHAT_TXN_LIMIT) return setAmtErr(tr("amtOverChat", inr(CHAT_TXN_LIMIT))), false;
+    if (payee.kind === "ben" && payee.ben.limit && amt > payee.ben.limit) return setAmtErr(tr("amtOverPayee", inr(payee.ben.limit))), false;
     setAmtErr("");
     const suggested = payee.kind === "own" ? "Intra-bank" : suggestMode(amt, payee.ben);
     setMode(suggested);
@@ -594,7 +597,7 @@ function TransferFlow({ accounts, setAccounts, beneficiaries, onClose, onComplet
     setAccounts((list) => list.map((a) => a.id === source.id ? { ...a, balance: a.balance - amt } : a));
     const utr = refNo("UTR");
     setResult({ utr, amt });
-    onComplete(`✅ ${inr(amt)} sent to ${payeeName} via ${mode}. UTR: ${utr}.`);
+    onComplete(tr("trfMsg", inr(amt), payeeName, mode, utr));
     setStep("done");
   };
 
@@ -602,17 +605,17 @@ function TransferFlow({ accounts, setAccounts, beneficiaries, onClose, onComplet
 
   return (
     <>
-      <FlowHeader title="Fund Transfer" onClose={onClose}
+      <FlowHeader title={tr("trfTitle")} onClose={onClose}
         onBack={step === "source" || step === "done" ? null : () => setStep("source")} />
       <div style={bs.body}>
         {step === "source" && (
           <>
-            <p style={{ color: C.muted, fontSize: 13, margin: "0 0 10px" }}>Transfer from</p>
+            <p style={{ color: C.muted, fontSize: 13, margin: "0 0 10px" }}>{tr("trfFrom")}</p>
             {accounts.map((a) => (
               <button key={a.id} style={bs.rowBtn} onClick={() => { setSource(a); setStep("payee"); }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: 14 }}>{a.product}</div>
-                  <div style={{ fontSize: 12.5, color: C.muted }}>{maskAcct(a.last4)} · Bal {inr(a.balance)}</div>
+                  <div style={{ fontSize: 12.5, color: C.muted }}>{maskAcct(a.last4)} · {tr("bal")} {inr(a.balance)}</div>
                 </div>
               </button>
             ))}
@@ -620,14 +623,14 @@ function TransferFlow({ accounts, setAccounts, beneficiaries, onClose, onComplet
         )}
         {step === "payee" && (
           <>
-            <p style={{ color: C.muted, fontSize: 13, margin: "0 0 10px" }}>Transfer to</p>
+            <p style={{ color: C.muted, fontSize: 13, margin: "0 0 10px" }}>{tr("trfTo")}</p>
             {accounts.filter((a) => a.id !== source.id).map((a) => (
               <button key={a.id} style={bs.rowBtn} onClick={() => { setPayee({ kind: "own", acct: a }); setStep("amount"); }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>My {a.product}</div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{tr("my")} {a.product}</div>
                   <div style={{ fontSize: 12.5, color: C.muted }}>{maskAcct(a.last4)}</div>
                 </div>
-                <span style={bs.pill("#EEF6FF", "#1E4E8C")}>Own</span>
+                <span style={bs.pill("#EEF6FF", "#1E4E8C")}>{tr("own")}</span>
               </button>
             ))}
             {activeBens.map((b) => (
@@ -641,49 +644,49 @@ function TransferFlow({ accounts, setAccounts, beneficiaries, onClose, onComplet
             {coolingBens.map((b) => (
               <div key={b.id} style={{ ...bs.rowBtn, cursor: "not-allowed", opacity: 0.6 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{b.nickname} {statusPill("cooling")}</div>
-                  <div style={{ fontSize: 12.5, color: C.muted }}>Available after cooling period</div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{b.nickname} {statusPill("cooling", tr)}</div>
+                  <div style={{ fontSize: 12.5, color: C.muted }}>{tr("availAfterCool")}</div>
                 </div>
               </div>
             ))}
-            <Notice kind="info">You can only transfer to your own linked accounts or registered beneficiaries. Ad-hoc account entry is not available in chat.</Notice>
+            <Notice kind="info">{tr("trfOnlyNote")}</Notice>
           </>
         )}
         {step === "amount" && (
           <>
-            <SummaryCard rows={[["From", `${source.product} (${maskAcct(source.last4)})`], ["To", `${payeeName}`]]} />
-            <Field label="Amount (₹)" error={amtErr}>
+            <SummaryCard rows={[[tr("from"), `${source.product} (${maskAcct(source.last4)})`], [tr("to"), `${payeeName}`]]} />
+            <Field label={tr("amount")} error={amtErr}>
               <input style={bs.input} inputMode="numeric" autoFocus value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))} />
             </Field>
-            <Field label="Remarks (optional)"><input style={bs.input} value={remarks} onChange={(e) => setRemarks(e.target.value)} /></Field>
-            <button style={bs.primary} onClick={checkAmount}>Continue</button>
+            <Field label={tr("remarks")}><input style={bs.input} value={remarks} onChange={(e) => setRemarks(e.target.value)} /></Field>
+            <button style={bs.primary} onClick={checkAmount}>{tr("continue")}</button>
           </>
         )}
         {step === "summary" && (
           <>
-            <p style={{ fontWeight: 700, margin: "0 0 4px" }}>Review transfer</p>
+            <p style={{ fontWeight: 700, margin: "0 0 4px" }}>{tr("reviewTransfer")}</p>
             <SummaryCard rows={[
-              ["From", `${source.product} (${maskAcct(source.last4)})`],
-              ["To", `${payeeName}`],
-              ["Payee account", payeeMasked],
-              ["Amount", inr(amount)],
-              ["Mode", (
+              [tr("from"), `${source.product} (${maskAcct(source.last4)})`],
+              [tr("to"), `${payeeName}`],
+              [tr("payeeAccount"), payeeMasked],
+              [tr("amountShort"), inr(amount)],
+              [tr("mode"), (
                 <select value={mode} onChange={(e) => setMode(e.target.value)} style={{ ...bs.select, width: "auto", padding: "4px 8px", fontSize: 13 }}>
                   {allowedModes.map((m) => <option key={m} value={m}>{m}</option>)}
                 </select>
               )],
-              ["Charges", "₹0 (demo)"],
-              remarks && ["Remarks", remarks],
+              [tr("charges"), tr("chargesVal")],
+              remarks && [tr("remarksShort"), remarks],
             ]} />
-            {mode === "NEFT" && <Notice kind="info">NEFT settles in batches — the payee is typically credited within 2 hours.</Notice>}
-            <button style={bs.primary} onClick={() => setStep("otp")}>Confirm &amp; get OTP</button>
+            {mode === "NEFT" && <Notice kind="info">{tr("neftNote")}</Notice>}
+            <button style={bs.primary} onClick={() => setStep("otp")}>{tr("confirmOtp")}</button>
           </>
         )}
-        {step === "otp" && <OtpGate purpose={`transfer of ${inr(amount)}`} onCancel={onClose} onVerified={execute} />}
+        {step === "otp" && <OtpGate tr={tr} purpose={tr("trfPurpose", inr(amount))} onCancel={onClose} onVerified={execute} />}
         {step === "done" && result && (
-          <Success title="Transfer successful" refId={result.utr}
-            rows={[["Amount", inr(result.amt)], ["To", payeeName], ["Mode", mode], ["Status", "Completed"]]}
-            note={mode === "NEFT" ? "Credit to the payee may take up to 2 hours (NEFT batch settlement)." : null}
+          <Success tr={tr} title={tr("trfDoneTitle")} refId={result.utr}
+            rows={[[tr("amountShort"), inr(result.amt)], [tr("to"), payeeName], [tr("mode"), mode], [tr("status"), tr("completed")]]}
+            note={mode === "NEFT" ? tr("neftDoneNote") : null}
             onDone={onClose} />
         )}
       </div>
@@ -694,7 +697,7 @@ function TransferFlow({ accounts, setAccounts, beneficiaries, onClose, onComplet
 // ===========================================================================
 // Feature 5 — Open FD / RD
 // ===========================================================================
-function DepositFlow({ accounts, setAccounts, nominee, onClose, onComplete }) {
+function DepositFlow({ tr, lang, accounts, setAccounts, nominee, onClose, onComplete }) {
   const [kind, setKind] = useState(null);            // 'FD' | 'RD'
   const [step, setStep] = useState("choose");
   const [source, setSource] = useState(null);
@@ -703,7 +706,7 @@ function DepositFlow({ accounts, setAccounts, nominee, onClose, onComplete }) {
   const [tenure, setTenure] = useState(null);
   const [amount, setAmount] = useState("");
   const [payout, setPayout] = useState("Cumulative");
-  const [maturityInstr, setMaturityInstr] = useState("Auto-renew principal + interest");
+  const [maturityInstr, setMaturityInstr] = useState("renewPI");
   const [debitDay, setDebitDay] = useState("5");
   const [amtErr, setAmtErr] = useState("");
   const [result, setResult] = useState(null);
@@ -725,9 +728,9 @@ function DepositFlow({ accounts, setAccounts, nominee, onClose, onComplete }) {
 
   const validateAmt = () => {
     const amt = Number(amount);
-    if (!amt || amt < min) return setAmtErr(`Minimum ${kind} amount is ${inr(min)}.`), false;
-    if (amt > max) return setAmtErr(`Maximum ${kind} amount is ${inr(max)}.`), false;
-    if (kind === "FD" && amt > source.balance) return setAmtErr(`Insufficient balance in source account (${inr(source.balance)}).`), false;
+    if (!amt || amt < min) return setAmtErr(tr("minAmt", kind, inr(min))), false;
+    if (amt > max) return setAmtErr(tr("maxAmt", kind, inr(max))), false;
+    if (kind === "FD" && amt > source.balance) return setAmtErr(tr("depInsufficient", inr(source.balance))), false;
     setAmtErr(""); setStep("preview"); return true;
   };
 
@@ -736,118 +739,123 @@ function DepositFlow({ accounts, setAccounts, nominee, onClose, onComplete }) {
   const fdMat = kind === "FD" && tenure ? fdMaturity(Number(amount), rate, tenure.months) : 0;
   const rdMat = kind === "RD" && tenure ? rdMaturity(Number(amount), rate, tenure.months) : 0;
   const periodic = kind === "FD" && tenure ? fdPayout(Number(amount), rate, payout === "Monthly" ? 12 : 4) : 0;
+  const pa = tr("perAnnum");
 
   const book = () => {
     if (kind === "FD") setAccounts((list) => list.map((a) => a.id === source.id ? { ...a, balance: a.balance - Number(amount) } : a));
     const acctNo = refNo(kind === "FD" ? "FD" : "RD");
     setResult({ acctNo });
     const summary = kind === "FD"
-      ? `✅ Fixed Deposit booked: ${inr(amount)} for ${tenure.label} at ${rate.toFixed(2)}% p.a. Maturity ${inr(fdMat)} on ${fmtDate(maturityDate)}. FD A/c: ${acctNo}`
-      : `✅ Recurring Deposit opened: ${inr(amount)}/month for ${tenure.label} at ${rate.toFixed(2)}% p.a. RD A/c: ${acctNo}`;
+      ? tr("fdMsg", inr(amount), tenure.label, rate.toFixed(2), inr(fdMat), fmtDate(maturityDate), acctNo)
+      : tr("rdMsg", inr(amount), tenure.label, rate.toFixed(2), acctNo);
     onComplete(summary);
     setStep("done");
   };
 
+  const payoutWord = tr(payout.toLowerCase());       // cumulative/monthly/quarterly
+
   return (
     <>
-      <FlowHeader title="Open FD / RD" onClose={onClose}
+      <FlowHeader title={tr("depTitle")} onClose={onClose}
         onBack={step === "choose" || step === "done" ? null : () => setStep("choose")} />
       <div style={bs.body}>
         {step === "choose" && (
           <>
             <button style={bs.rowBtn} onClick={() => { setKind("FD"); setRates(null); setPayout("Cumulative"); setStep("source"); }}>
               <FontAwesomeIcon icon={faPiggyBank} style={{ color: C.maroon, fontSize: 18 }} />
-              <div><div style={{ fontWeight: 700 }}>Fixed Deposit (FD)</div><div style={{ fontSize: 12.5, color: C.muted }}>Invest a lump sum for a fixed tenure</div></div>
+              <div><div style={{ fontWeight: 700 }}>{tr("fdName")}</div><div style={{ fontSize: 12.5, color: C.muted }}>{tr("fdDesc")}</div></div>
             </button>
             <button style={bs.rowBtn} onClick={() => { setKind("RD"); setRates(null); setStep("source"); }}>
               <FontAwesomeIcon icon={faPiggyBank} style={{ color: C.maroon, fontSize: 18 }} />
-              <div><div style={{ fontWeight: 700 }}>Recurring Deposit (RD)</div><div style={{ fontSize: 12.5, color: C.muted }}>Save a fixed amount every month</div></div>
+              <div><div style={{ fontWeight: 700 }}>{tr("rdName")}</div><div style={{ fontSize: 12.5, color: C.muted }}>{tr("rdDesc")}</div></div>
             </button>
           </>
         )}
         {step === "source" && (
           <>
-            <p style={{ color: C.muted, fontSize: 13, margin: "0 0 10px" }}>{kind === "FD" ? "Fund the deposit from" : "Set up the monthly standing instruction from"}</p>
+            <p style={{ color: C.muted, fontSize: 13, margin: "0 0 10px" }}>{kind === "FD" ? tr("depFundFrom") : tr("depSiFrom")}</p>
             {accounts.map((a) => (
               <button key={a.id} style={bs.rowBtn} onClick={() => { setSource(a); goToRates(); }}>
-                <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{a.product}</div><div style={{ fontSize: 12.5, color: C.muted }}>{maskAcct(a.last4)} · Bal {inr(a.balance)}</div></div>
+                <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14 }}>{a.product}</div><div style={{ fontSize: 12.5, color: C.muted }}>{maskAcct(a.last4)} · {tr("bal")} {inr(a.balance)}</div></div>
               </button>
             ))}
           </>
         )}
         {step === "rates" && (
           <>
-            <p style={{ fontWeight: 700, margin: "0 0 4px" }}>Current {kind} rates {senior && <span style={bs.pill("#EAF7EF", C.ok)}>Senior +{SENIOR_EXTRA}%</span>}</p>
-            <p style={{ fontSize: 12, color: C.muted, margin: "0 0 8px" }}>Fetched live · subject to change</p>
-            {loadingRates && <p style={{ color: C.muted }}>Fetching latest rates…</p>}
+            <p style={{ fontWeight: 700, margin: "0 0 4px" }}>{tr("ratesTitle", kind)} {senior && <span style={bs.pill("#EAF7EF", C.ok)}>{tr("seniorPill", SENIOR_EXTRA)}</span>}</p>
+            <p style={{ fontSize: 12, color: C.muted, margin: "0 0 8px" }}>{tr("ratesLive")}</p>
+            {loadingRates && <p style={{ color: C.muted }}>{tr("fetching")}</p>}
             {rates && rates.map((t) => (
               <button key={t.key} style={{ ...bs.rowBtn, borderColor: tenure?.key === t.key ? C.maroon : C.border }} onClick={() => { setTenure(t); setStep("details"); }}>
                 <div style={{ flex: 1 }}><div style={{ fontWeight: 700 }}>{t.label}</div></div>
-                <div style={{ fontWeight: 700, color: C.maroon }}>{effRate(t).toFixed(2)}% p.a.</div>
+                <div style={{ fontWeight: 700, color: C.maroon }}>{effRate(t).toFixed(2)}{pa}</div>
               </button>
             ))}
           </>
         )}
         {step === "details" && (
           <>
-            <SummaryCard rows={[["Type", kind === "FD" ? "Fixed Deposit" : "Recurring Deposit"], ["Tenure", tenure.label], ["Rate", `${rate.toFixed(2)}% p.a.`]]} />
-            <Field label={kind === "FD" ? "Deposit amount (₹)" : "Monthly installment (₹)"} error={amtErr}>
+            <SummaryCard rows={[[tr("type"), kind === "FD" ? tr("fdName") : tr("rdName")], [tr("tenure"), tenure.label], [tr("rate"), `${rate.toFixed(2)}${pa}`]]} />
+            <Field label={kind === "FD" ? tr("depAmount") : tr("monthlyInstallment")} error={amtErr}>
               <input style={bs.input} inputMode="numeric" autoFocus value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))} />
             </Field>
             {kind === "FD" && (
               <>
-                <Field label="Interest payout">
+                <Field label={tr("interestPayout")}>
                   <select style={bs.select} value={payout} onChange={(e) => setPayout(e.target.value)}>
-                    <option>Cumulative</option><option>Monthly</option><option>Quarterly</option>
+                    <option value="Cumulative">{tr("cumulative")}</option>
+                    <option value="Monthly">{tr("monthly")}</option>
+                    <option value="Quarterly">{tr("quarterly")}</option>
                   </select>
                 </Field>
-                <Field label="On maturity">
+                <Field label={tr("onMaturity")}>
                   <select style={bs.select} value={maturityInstr} onChange={(e) => setMaturityInstr(e.target.value)}>
-                    <option>Auto-renew principal + interest</option>
-                    <option>Auto-renew principal only</option>
-                    <option>Credit to account</option>
+                    <option value="renewPI">{tr("renewPI")}</option>
+                    <option value="renewP">{tr("renewP")}</option>
+                    <option value="creditAcct">{tr("creditAcct")}</option>
                   </select>
                 </Field>
               </>
             )}
             {kind === "RD" && (
-              <Field label="Monthly debit date">
+              <Field label={tr("debitDate")}>
                 <select style={bs.select} value={debitDay} onChange={(e) => setDebitDay(e.target.value)}>
-                  {["1", "5", "10", "15", "20", "25"].map((d) => <option key={d} value={d}>{d}th of every month</option>)}
+                  {["1", "5", "10", "15", "20", "25"].map((d) => <option key={d} value={d}>{tr("debitDay", d)}</option>)}
                 </select>
               </Field>
             )}
-            <button style={bs.primary} onClick={validateAmt}>See preview</button>
+            <button style={bs.primary} onClick={validateAmt}>{tr("seePreview")}</button>
           </>
         )}
         {step === "preview" && (
           <>
-            <p style={{ fontWeight: 700, margin: "0 0 4px" }}>Deposit preview</p>
+            <p style={{ fontWeight: 700, margin: "0 0 4px" }}>{tr("depPreview")}</p>
             <SummaryCard rows={[
-              [kind === "FD" ? "Principal" : "Monthly installment", inr(amount)],
-              ["Tenure", tenure.label],
-              ["Interest rate", `${rate.toFixed(2)}% p.a.${senior ? " (incl. senior citizen benefit)" : ""}`],
-              ["Maturity date", fmtDate(maturityDate)],
-              kind === "FD" && payout === "Cumulative" && ["Maturity amount", inr(fdMat)],
-              kind === "FD" && payout !== "Cumulative" && [`${payout} payout`, inr(periodic)],
-              kind === "RD" && ["Total invested", inr(Number(amount) * tenure.months)],
-              kind === "RD" && ["Maturity amount", inr(rdMat)],
-              ["Nominee", nominee ? `${nominee.name} (${nominee.relationship})` : "Not set — please add via Nominee Management"],
+              [kind === "FD" ? tr("principal") : tr("monthlyInstallment"), inr(amount)],
+              [tr("tenure"), tenure.label],
+              [tr("interestRate"), `${rate.toFixed(2)}${pa}${senior ? tr("seniorIncl") : ""}`],
+              [tr("maturityDate"), fmtDate(maturityDate)],
+              kind === "FD" && payout === "Cumulative" && [tr("maturityAmount"), inr(fdMat)],
+              kind === "FD" && payout !== "Cumulative" && [tr("payoutLabel", payoutWord), inr(periodic)],
+              kind === "RD" && [tr("totalInvested"), inr(Number(amount) * tenure.months)],
+              kind === "RD" && [tr("maturityAmount"), inr(rdMat)],
+              [tr("nominee"), nominee ? `${nominee.name} (${relLabel(lang, nominee.relationship)})` : tr("nomNotSet")],
             ]} />
             <Notice kind="warn">
-              TDS is deducted if total interest exceeds ₹40,000 in a financial year (₹50,000 for senior citizens). Submit Form 15G/15H if eligible.
-              {kind === "FD" ? " Premature withdrawal attracts ~1% penalty on the applicable rate." : " Missing an installment attracts a small penalty per ₹100 of the installment."}
+              {tr("tdsNote")}
+              {kind === "FD" ? tr("fdPenalty") : tr("rdPenalty")}
             </Notice>
-            <button style={bs.primary} onClick={() => setStep("otp")}>Confirm &amp; get OTP</button>
+            <button style={bs.primary} onClick={() => setStep("otp")}>{tr("confirmOtp")}</button>
           </>
         )}
-        {step === "otp" && <OtpGate purpose={`opening this ${kind}`} onCancel={onClose} onVerified={book} />}
+        {step === "otp" && <OtpGate tr={tr} purpose={tr("depPurpose", kind)} onCancel={onClose} onVerified={book} />}
         {step === "done" && result && (
-          <Success title={`${kind} opened successfully`} refId={result.acctNo}
+          <Success tr={tr} title={tr("depDoneTitle", kind)} refId={result.acctNo}
             rows={kind === "FD"
-              ? [["Principal", inr(amount)], ["Rate", `${rate.toFixed(2)}% p.a.`], ["Maturity", `${inr(fdMat)} on ${fmtDate(maturityDate)}`]]
-              : [["Installment", `${inr(amount)}/month`], ["Rate", `${rate.toFixed(2)}% p.a.`], ["Maturity", `${inr(rdMat)} on ${fmtDate(maturityDate)}`]]}
-            note="A deposit advice/receipt has been sent to your registered email and is available in your account statements." onDone={onClose} />
+              ? [[tr("principal"), inr(amount)], [tr("rate"), `${rate.toFixed(2)}${pa}`], [tr("maturity"), `${inr(fdMat)} · ${fmtDate(maturityDate)}`]]
+              : [[tr("installment"), `${inr(amount)}${tr("perMonth")}`], [tr("rate"), `${rate.toFixed(2)}${pa}`], [tr("maturity"), `${inr(rdMat)} · ${fmtDate(maturityDate)}`]]}
+            note={tr("depDoneNote")} onDone={onClose} />
         )}
       </div>
     </>
@@ -857,15 +865,8 @@ function DepositFlow({ accounts, setAccounts, nominee, onClose, onComplete }) {
 // ===========================================================================
 // Root panel + service menu
 // ===========================================================================
-const MENU = [
-  { key: "pin", icon: faCreditCard, title: "Set / Reset Card PIN", desc: "Set a new debit card PIN securely" },
-  { key: "nominee", icon: faUserShield, title: "Nominee", desc: "View, add or update your nominee" },
-  { key: "beneficiary", icon: faUsers, title: "Beneficiaries", desc: "Add, edit or remove payees" },
-  { key: "transfer", icon: faMoneyBillTransfer, title: "Fund Transfer", desc: "Send money to your accounts or payees" },
-  { key: "deposit", icon: faPiggyBank, title: "Open FD / RD", desc: "Book a fixed or recurring deposit" },
-];
-
-export default function BankingServices({ onClose, onComplete }) {
+export default function BankingServices({ lang = "en", onClose, onComplete }) {
+  const tr = makeTr(lang);
   const [view, setView] = useState("menu");
   // In-memory "CBS" state — persists while the panel is mounted (one session).
   const [accounts, setAccounts] = useState(initialAccounts);
@@ -875,16 +876,24 @@ export default function BankingServices({ onClose, onComplete }) {
 
   const close = () => { setView("menu"); onClose(); };
 
+  const MENU = [
+    { key: "pin", icon: faCreditCard, title: tr("mPinT"), desc: tr("mPinD") },
+    { key: "nominee", icon: faUserShield, title: tr("mNomT"), desc: tr("mNomD") },
+    { key: "beneficiary", icon: faUsers, title: tr("mBenT"), desc: tr("mBenD") },
+    { key: "transfer", icon: faMoneyBillTransfer, title: tr("mTrfT"), desc: tr("mTrfD") },
+    { key: "deposit", icon: faPiggyBank, title: tr("mDepT"), desc: tr("mDepD") },
+  ];
+
   return (
     <div style={bs.overlay} onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
       <div style={bs.sheet} onClick={(e) => e.stopPropagation()}>
         {view === "menu" && (
           <>
-            <FlowHeader title="Self-service Banking" onClose={close} />
+            <FlowHeader title={tr("panelTitle")} onClose={close} />
             <div style={bs.body}>
               <div style={{ display: "flex", gap: 8, alignItems: "center", color: C.muted, fontSize: 12.5, marginBottom: 12 }}>
                 <FontAwesomeIcon icon={faShieldHalved} style={{ color: C.maroon }} />
-                Every action here is authenticated and confirmed with an OTP. Demo only — no real money moves.
+                {tr("secureNote")}
               </div>
               <div style={bs.menuGrid}>
                 {MENU.map((m) => (
@@ -898,11 +907,11 @@ export default function BankingServices({ onClose, onComplete }) {
             </div>
           </>
         )}
-        {view === "pin" && <PinFlow cards={cards} onClose={close} onComplete={onComplete} />}
-        {view === "nominee" && <NomineeFlow nominee={nominee} setNominee={setNominee} onClose={close} onComplete={onComplete} />}
-        {view === "beneficiary" && <BeneficiaryFlow beneficiaries={beneficiaries} setBeneficiaries={setBeneficiaries} onClose={close} onComplete={onComplete} />}
-        {view === "transfer" && <TransferFlow accounts={accounts} setAccounts={setAccounts} beneficiaries={beneficiaries} onClose={close} onComplete={onComplete} />}
-        {view === "deposit" && <DepositFlow accounts={accounts} setAccounts={setAccounts} nominee={nominee} onClose={close} onComplete={onComplete} />}
+        {view === "pin" && <PinFlow tr={tr} cards={cards} onClose={close} onComplete={onComplete} />}
+        {view === "nominee" && <NomineeFlow tr={tr} lang={lang} nominee={nominee} setNominee={setNominee} onClose={close} onComplete={onComplete} />}
+        {view === "beneficiary" && <BeneficiaryFlow tr={tr} beneficiaries={beneficiaries} setBeneficiaries={setBeneficiaries} onClose={close} onComplete={onComplete} />}
+        {view === "transfer" && <TransferFlow tr={tr} accounts={accounts} setAccounts={setAccounts} beneficiaries={beneficiaries} onClose={close} onComplete={onComplete} />}
+        {view === "deposit" && <DepositFlow tr={tr} lang={lang} accounts={accounts} setAccounts={setAccounts} nominee={nominee} onClose={close} onComplete={onComplete} />}
       </div>
     </div>
   );
