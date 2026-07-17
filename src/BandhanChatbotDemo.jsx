@@ -306,6 +306,31 @@ const stripForSpeech = (text) => {
   return s.replace(/\s+/g, " ").trim();
 };
 
+// Pull complete sentences out of a (possibly growing) buffer for streaming TTS.
+// Returns finished sentences plus the leftover tail that has no terminator yet.
+// A "." only ends a sentence when followed by whitespace, so decimals like 4.5 stay intact.
+const splitSentences = (buf) => {
+  const sentences = [];
+  let last = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const c = buf[i];
+    const hard = c === "!" || c === "?" || c === "\n" || c === "।" || c === "॥"; // incl. Devanagari/Bengali danda
+    if (hard || c === ".") {
+      if (c === ".") {
+        const next = buf[i + 1];
+        if (next === undefined) continue;   // wait for more input
+        if (!/\s/.test(next)) continue;      // not a boundary (e.g. 4.5)
+      }
+      const chunk = buf.slice(last, i + 1).trim();
+      if (chunk) sentences.push(chunk);
+      last = i + 1;
+    }
+  }
+  // NB: rest is intentionally NOT trimmed — a trailing space must survive to
+  // separate this tail from the next streamed chunk (else words glue together).
+  return { sentences, rest: buf.slice(last) };
+};
+
 export default function BandhanChatbotDemo({ embedded = false }) {
   const [mode, setMode] = useState(null);
   const [authStep, setAuthStep] = useState("mobile");
@@ -327,7 +352,9 @@ export default function BandhanChatbotDemo({ embedded = false }) {
 
   const endRef = useRef(null);
   const voiceModeRef = useRef("on");
-  const audioRef = useRef(null);
+  const currentAudioRef = useRef(null);        // Audio element currently playing
+  const audioChainRef = useRef(Promise.resolve()); // serialises playback order
+  const speechSeqRef = useRef(0);              // bumps to cancel in-flight speech
   const recognitionRef = useRef(null);
   const downCountRef = useRef(0); // consecutive thumbs-down counter
 
@@ -340,34 +367,55 @@ export default function BandhanChatbotDemo({ embedded = false }) {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading, mode, authStep]);
 
-  // ---- Text to speech (Google Cloud TTS) ----
+  // ---- Text to speech (Google Cloud TTS, sentence-queued) ----
   const stopSpeaking = () => {
-    try { audioRef.current?.pause(); audioRef.current = null; } catch { /* noop */ }
+    speechSeqRef.current += 1;                 // invalidate anything in flight
+    try { currentAudioRef.current?.pause(); } catch { /* noop */ }
+    currentAudioRef.current = null;
+    audioChainRef.current = Promise.resolve();
     setSpeakingIdx(null);
   };
 
-  const speak = async (text, idx) => {
-    if (voiceModeRef.current === "off") return;
-    const clean = stripForSpeech(text);
+  // Fetch one sentence's audio (starts immediately for prefetch) then chain playback in order.
+  const enqueueSpeech = (sentence, idx, seq) => {
+    const clean = stripForSpeech(sentence);
     if (!clean) return;
+    const langCode = detectTtsLang(sentence, langRef.current);
+    const audioP = fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: clean, langCode }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d?.audioContent || null)
+      .catch(() => null);
+
+    audioChainRef.current = audioChainRef.current.then(
+      () =>
+        new Promise((resolve) => {
+          audioP.then((audioContent) => {
+            if (seq !== speechSeqRef.current || !audioContent) return resolve();
+            const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+            currentAudioRef.current = audio;
+            setSpeakingIdx(idx);
+            audio.onended = resolve;
+            audio.onerror = resolve;
+            audio.play().catch(() => resolve());
+          });
+        })
+    );
+  };
+
+  // Manual replay of a whole message: split into sentences and queue them all.
+  const speak = (text, idx) => {
+    if (voiceModeRef.current === "off") return;
     stopSpeaking();
-    setSpeakingIdx(idx);
-    try {
-      const langCode = detectTtsLang(text, langRef.current);
-      const res = await fetch("/api/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: clean, langCode }),
-      });
-      if (!res.ok) { setSpeakingIdx(null); return; }
-      const { audioContent } = await res.json();
-      if (!audioContent) { setSpeakingIdx(null); return; }
-      const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
-      audioRef.current = audio;
-      audio.onended = () => setSpeakingIdx((s) => (s === idx ? null : s));
-      audio.onerror = () => setSpeakingIdx((s) => (s === idx ? null : s));
-      audio.play();
-    } catch { setSpeakingIdx(null); }
+    const seq = speechSeqRef.current;
+    const { sentences, rest } = splitSentences(text);
+    [...sentences, rest].forEach((s) => enqueueSpeech(s, idx, seq));
+    audioChainRef.current = audioChainRef.current.then(() => {
+      if (seq === speechSeqRef.current) setSpeakingIdx(null);
+    });
   };
 
   // ---- Speech to text (Indian English) ----
@@ -462,8 +510,19 @@ export default function BandhanChatbotDemo({ embedded = false }) {
     setInput("");
     stopSpeaking();
     const newMsgs = [...messages, { role: "user", content: userText }];
-    setMessages(newMsgs);
+    const assistantIdx = newMsgs.length;            // where the reply will live
+    setMessages([...newMsgs, { role: "assistant", content: "" }]);
     setLoading(true);
+
+    const autoSpeak = voiceModeRef.current === "on";
+    const seq = speechSeqRef.current;               // speech generation for this reply
+    const setReply = (content) =>
+      setMessages((m) => {
+        const a = [...m];
+        if (a[assistantIdx]) a[assistantIdx] = { ...a[assistantIdx], content };
+        return a;
+      });
+
     try {
       const langName = LANG_NAME[langRef.current];
       const langInstruction = `\n\nLANGUAGE INSTRUCTION (overrides any other language rule): The user has selected ${langName}. You MUST reply ONLY in ${langName} for every response, regardless of the language the user types in. Keep banking terms understandable.`;
@@ -478,18 +537,47 @@ export default function BandhanChatbotDemo({ embedded = false }) {
           messages: newMsgs.map((m) => ({ role: m.role, content: m.content })),
         }),
       });
-      const data = await response.json();
-      const reply = (data.content || [])
-        .filter((b) => b.type === "text")
-        .map((b) => b.text)
-        .join("\n") || "Sorry, I had trouble responding. Please try again, or call our 24x7 helpline 1800 258 8181.";
-      setMessages((m) => {
-        const arr = [...m, { role: "assistant", content: reply }];
-        if (voiceModeRef.current === "on") setTimeout(() => speak(reply, arr.length - 1), 60);
-        return arr;
-      });
+      if (!response.ok || !response.body) throw new Error("no stream");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let sseBuf = "";      // raw SSE bytes not yet split into events
+      let full = "";        // accumulated reply text (for display)
+      let ttsBuf = "";      // text not yet emitted as a spoken sentence
+
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        sseBuf += decoder.decode(value, { stream: true });
+        const events = sseBuf.split("\n\n");
+        sseBuf = events.pop() || "";
+        for (const ev of events) {
+          const line = ev.split("\n").find((l) => l.startsWith("data:"));
+          if (!line) continue;
+          const payload = JSON.parse(line.slice(5).trim());
+          if (payload.error) throw new Error(payload.error);
+          if (payload.delta) {
+            full += payload.delta;
+            setReply(full);
+            if (autoSpeak) {
+              ttsBuf += payload.delta;
+              const { sentences, rest } = splitSentences(ttsBuf);
+              ttsBuf = rest;
+              sentences.forEach((s) => enqueueSpeech(s, assistantIdx, seq));
+            }
+          }
+        }
+      }
+      if (autoSpeak && ttsBuf.trim()) enqueueSpeech(ttsBuf, assistantIdx, seq);
+      if (!full) {
+        setReply("Sorry, I had trouble responding. Please try again, or call our 24x7 helpline 1800 258 8181.");
+      } else if (autoSpeak) {
+        audioChainRef.current = audioChainRef.current.then(() => {
+          if (seq === speechSeqRef.current) setSpeakingIdx(null);
+        });
+      }
     } catch {
-      setMessages((m) => [...m, { role: "assistant", content: "I'm facing a technical issue right now. Please try again in a moment, or call 1800 258 8181 (24x7)." }]);
+      setReply("I'm facing a technical issue right now. Please try again in a moment, or call 1800 258 8181 (24x7).");
     } finally {
       setLoading(false);
     }
@@ -649,6 +737,8 @@ export default function BandhanChatbotDemo({ embedded = false }) {
                 );
               }
               const isUser = m.role === "user";
+              // Don't render the assistant placeholder until the first token arrives
+              if (!isUser && !m.content) return null;
               return (
                 <div key={i} className="msg" style={{ ...S.row, justifyContent: isUser ? "flex-end" : "flex-start", alignItems: "flex-start" }}>
                   {!isUser && <div style={S.avatar}>B</div>}
@@ -695,7 +785,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
                 </div>
               );
             })}
-            {loading && (
+            {loading && !messages[messages.length - 1]?.content && (
               <div style={{ ...S.row, justifyContent: "flex-start" }}>
                 <div style={S.avatar}>B</div>
                 <div style={S.botBubble}><span className="dot" /><span className="dot" /><span className="dot" /></div>

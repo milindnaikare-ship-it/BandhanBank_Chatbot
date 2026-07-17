@@ -24,21 +24,37 @@ export default async function handler(req, res) {
       .filter(Boolean)
       .join("\n\n---\n\n");
 
-    // 3. Call Claude Haiku with augmented system prompt
+    // 3. Call Claude Haiku with augmented system prompt — stream via SSE
     const augmentedSystem = ragContext
       ? system + "\n\n## RELEVANT KNOWLEDGE BASE CONTEXT\n" + ragContext
       : system;
 
-    const response = await anthropic.messages.create({
+    res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+
+    const stream = anthropic.messages.stream({
       model: "claude-haiku-4-5-20251001",
       max_tokens,
       system: augmentedSystem,
       messages,
     });
 
-    res.status(200).json({ content: response.content });
+    stream.on("text", (delta) => {
+      res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+    });
+
+    await stream.finalMessage();
+    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+    res.end();
   } catch (err) {
     console.error("Chat error:", err);
-    res.status(500).json({ error: err.message || "Internal server error" });
+    // If headers already sent (mid-stream), surface the error as an SSE event
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ error: err.message || "stream error" })}\n\n`);
+      res.end();
+    } else {
+      res.status(500).json({ error: err.message || "Internal server error" });
+    }
   }
 }
