@@ -60,7 +60,7 @@ const T = {
     greetVisitor: "Namaskar! I'm Bandhan Sahayak, your virtual assistant. I can tell you about our savings accounts, deposits, loans, cards and more — or help you find a branch. How may I help you today?",
     greetAuth: "Welcome back, Mr. Milind Naikare! You're verified. I can help with your savings account balance, recent transactions, card services, deposits or complaints. What would you like to do?",
     chipsVisitor: ["What savings accounts do you offer?", "Current FD interest rates", "I want to enquire about a savings account", "Open an account online", "Find a branch near me"],
-    chipsAuth: ["What's my account balance?", "Show my last 5 transactions", "Do I have any active loans?", "Do I have a credit card?", "Block my debit card"],
+    chipsAuth: ["What's my account balance?", "Show my last 5 transactions", "Do I have any active loans?", "Block my debit card"],
     placeholderVisitor: "Ask about products, rates, branches…", placeholderAuth: "Ask about your accounts, cards or loans…",
     listening: "Listening…",
     feedbackLabel: "Are you satisfied with the response?", feedbackThanks: "Thanks for your feedback.",
@@ -91,7 +91,7 @@ const T = {
     greetVisitor: "नमस्कार! मैं बंधन सहायक हूँ, आपका वर्चुअल असिस्टेंट। मैं आपको हमारे बचत खातों, जमा, ऋण, कार्ड और अन्य के बारे में बता सकता हूँ — या शाखा खोजने में मदद कर सकता हूँ। मैं आपकी कैसे मदद करूँ?",
     greetAuth: "वापसी पर स्वागत है, श्री मिलिंद नाइकरे! आप सत्यापित हैं। मैं आपके बचत खाते की शेष राशि, हाल के लेन-देन, कार्ड सेवाओं, जमा या शिकायतों में मदद कर सकता हूँ। आप क्या करना चाहेंगे?",
     chipsVisitor: ["आप कौन से बचत खाते देते हैं?", "वर्तमान FD ब्याज दरें", "मैं बचत खाते के बारे में जानना चाहता हूँ", "ऑनलाइन खाता खोलें", "मेरे पास की शाखा खोजें"],
-    chipsAuth: ["मेरे खाते की शेष राशि क्या है?", "मेरे पिछले 5 लेन-देन दिखाएँ", "क्या मेरे कोई सक्रिय ऋण हैं?", "क्या मेरे पास क्रेडिट कार्ड है?", "मेरा डेबिट कार्ड ब्लॉक करें"],
+    chipsAuth: ["मेरे खाते की शेष राशि क्या है?", "मेरे पिछले 5 लेन-देन दिखाएँ", "क्या मेरे कोई सक्रिय ऋण हैं?", "मेरा डेबिट कार्ड ब्लॉक करें"],
     placeholderVisitor: "उत्पादों, दरों, शाखाओं के बारे में पूछें…", placeholderAuth: "अपने खातों, कार्ड या ऋण के बारे में पूछें…",
     listening: "सुन रहा हूँ…",
     feedbackLabel: "क्या आप इस उत्तर से संतुष्ट हैं?", feedbackThanks: "आपकी प्रतिक्रिया के लिए धन्यवाद।",
@@ -122,7 +122,7 @@ const T = {
     greetVisitor: "নমস্কার! আমি বন্ধন সহায়ক, আপনার ভার্চুয়াল অ্যাসিস্ট্যান্ট। আমি আপনাকে আমাদের সঞ্চয় অ্যাকাউন্ট, আমানত, ঋণ, কার্ড এবং আরও অনেক কিছু সম্পর্কে বলতে পারি — অথবা একটি শাখা খুঁজে পেতে সাহায্য করতে পারি। আমি আজ আপনাকে কীভাবে সাহায্য করতে পারি?",
     greetAuth: "ফিরে আসায় স্বাগতম, মিঃ মিলিন্দ নায়করে! আপনি যাচাই হয়েছেন। আমি আপনার সঞ্চয় অ্যাকাউন্টের ব্যালেন্স, সাম্প্রতিক লেনদেন, কার্ড পরিষেবা, আমানত বা অভিযোগে সাহায্য করতে পারি। আপনি কী করতে চান?",
     chipsVisitor: ["আপনারা কোন সঞ্চয় অ্যাকাউন্ট অফার করেন?", "বর্তমান FD সুদের হার", "আমি একটি সঞ্চয় অ্যাকাউন্ট সম্পর্কে জানতে চাই", "অনলাইনে অ্যাকাউন্ট খুলুন", "আমার কাছাকাছি একটি শাখা খুঁজুন"],
-    chipsAuth: ["আমার অ্যাকাউন্টের ব্যালেন্স কত?", "আমার শেষ ৫টি লেনদেন দেখান", "আমার কি কোনো সক্রিয় ঋণ আছে?", "আমার কি ক্রেডিট কার্ড আছে?", "আমার ডেবিট কার্ড ব্লক করুন"],
+    chipsAuth: ["আমার অ্যাকাউন্টের ব্যালেন্স কত?", "আমার শেষ ৫টি লেনদেন দেখান", "আমার কি কোনো সক্রিয় ঋণ আছে?", "আমার ডেবিট কার্ড ব্লক করুন"],
     placeholderVisitor: "পণ্য, হার, শাখা সম্পর্কে জিজ্ঞাসা করুন…", placeholderAuth: "আপনার অ্যাকাউন্ট, কার্ড বা ঋণ সম্পর্কে জিজ্ঞাসা করুন…",
     listening: "শুনছি…",
     feedbackLabel: "আপনি কি এই উত্তরে সন্তুষ্ট?", feedbackThanks: "আপনার মতামতের জন্য ধন্যবাদ।",
@@ -153,7 +153,7 @@ const T = {
     greetVisitor: "नमस्कार! मी बंधन सहायक आहे, तुमचा व्हर्च्युअल असिस्टंट. मी तुम्हाला आमची बचत खाती, ठेवी, कर्जे, कार्ड आणि बरेच काही सांगू शकतो — किंवा शाखा शोधण्यात मदत करू शकतो. मी आज तुमची कशी मदत करू?",
     greetAuth: "पुन्हा स्वागत आहे, श्री मिलिंद नाईकरे! तुमची पडताळणी झाली आहे. मी तुमच्या बचत खात्याची शिल्लक, अलीकडील व्यवहार, कार्ड सेवा, ठेवी किंवा तक्रारींमध्ये मदत करू शकतो. तुम्हाला काय करायचे आहे?",
     chipsVisitor: ["तुम्ही कोणती बचत खाती देता?", "सध्याचे FD व्याजदर", "मला बचत खात्याबद्दल चौकशी करायची आहे", "ऑनलाइन खाते उघडा", "माझ्या जवळची शाखा शोधा"],
-    chipsAuth: ["माझ्या खात्याची शिल्लक किती आहे?", "माझे शेवटचे 5 व्यवहार दाखवा", "माझी काही सक्रिय कर्जे आहेत का?", "माझ्याकडे क्रेडिट कार्ड आहे का?", "माझे डेबिट कार्ड ब्लॉक करा"],
+    chipsAuth: ["माझ्या खात्याची शिल्लक किती आहे?", "माझे शेवटचे 5 व्यवहार दाखवा", "माझी काही सक्रिय कर्जे आहेत का?", "माझे डेबिट कार्ड ब्लॉक करा"],
     placeholderVisitor: "उत्पादने, दर, शाखांबद्दल विचारा…", placeholderAuth: "तुमची खाती, कार्ड किंवा कर्जांबद्दल विचारा…",
     listening: "ऐकत आहे…",
     feedbackLabel: "तुम्ही या उत्तराने समाधानी आहात का?", feedbackThanks: "तुमच्या अभिप्रायाबद्दल धन्यवाद.",
@@ -184,7 +184,7 @@ const T = {
     greetVisitor: "Namaskar! Main Bandhan Sahayak hoon, aapka virtual assistant. Main aapko hamare savings accounts, deposits, loans, cards aur bahut kuch ke baare mein bata sakta hoon — ya branch dhoondhne mein madad kar sakta hoon. Aaj main aapki kaise madad karoon?",
     greetAuth: "Wapas swagat hai, Mr. Milind Naikare! Aap verified hain. Main aapke savings account ka balance, recent transactions, card services, deposits ya complaints mein madad kar sakta hoon. Aap kya karna chahenge?",
     chipsVisitor: ["Aap kaun se savings accounts offer karte hain?", "Current FD interest rates", "Main savings account ke baare mein jaanna chahta hoon", "Online account kholein", "Mere paas ki branch dhoondhein"],
-    chipsAuth: ["Mere account ka balance kya hai?", "Mere last 5 transactions dikhayein", "Kya mere koi active loans hain?", "Kya mere paas credit card hai?", "Mera debit card block karein"],
+    chipsAuth: ["Mere account ka balance kya hai?", "Mere last 5 transactions dikhayein", "Kya mere koi active loans hain?", "Mera debit card block karein"],
     placeholderVisitor: "Products, rates, branches ke baare mein poochein…", placeholderAuth: "Apne accounts, cards ya loans ke baare mein poochein…",
     listening: "Sun raha hoon…",
     feedbackLabel: "Kya aap is response se satisfied hain?", feedbackThanks: "Aapke feedback ke liye dhanyavaad.",
@@ -608,7 +608,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
   const voiceTitle = voiceMode === "on" ? "Voice replies ON — tap to mute" : voiceMode === "muted" ? "Voice MUTED — tap to switch off" : "Voice OFF — tap to turn on";
 
   return (
-    <div className="bsa-root" style={{ ...S.page, position: "relative", fontFamily: fonts.body, ...(embedded ? { minHeight: 0, height: "100%", overflow: "hidden" } : {}) }}>
+    <div className="bsa-root" style={{ ...S.page, position: "relative", zoom: 0.9, fontFamily: fonts.body, ...(embedded ? { minHeight: 0, height: "100%", overflow: "hidden" } : {}) }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=Roboto:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;500;700&family=Noto+Sans+Bengali:wght@400;500;700&display=swap');
         @keyframes rise { from { opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
