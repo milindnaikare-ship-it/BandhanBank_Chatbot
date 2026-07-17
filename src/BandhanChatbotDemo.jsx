@@ -7,7 +7,6 @@ import {
   faThumbsUp, faThumbsDown, faPaperPlane, faHeadset, faPhone, faGripVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import BankingServices from "./BankingServices";
-import BandhanLogo from "./BandhanLogo";
 
 const ANON_NOTE = "\nANONYMOUS SESSION — no customer data may be shared. If asked for balances or personal details, explain they need to verify with their registered mobile (offer the 'Existing customer' login).";
 const REP_NUMBER = "18002588181";
@@ -630,9 +629,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
 
       <header style={S.header}>
         <div style={S.logoBox}>
-          <div style={{ width: 44, height: 44, borderRadius: 11, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <BandhanLogo size={34} id="bbChatHeader" />
-          </div>
+          <div style={S.logoMark}>৳</div>
           <div>
             <div className="heading" style={S.bankName}>Bandhan Bank</div>
             <div style={S.tagline}>{t.tagline}</div>
@@ -758,7 +755,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
               if (!isUser && !m.content) return null;
               return (
                 <div key={i} className="msg" style={{ ...S.row, justifyContent: isUser ? "flex-end" : "flex-start", alignItems: "flex-start" }}>
-                  {!isUser && <BandhanLogo size={32} id="bbAvatar" style={{ flexShrink: 0 }} />}
+                  {!isUser && <div style={S.avatar}>B</div>}
                   {isUser ? (
                     <div style={S.userBubble}>{m.content}</div>
                   ) : (
@@ -804,7 +801,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
             })}
             {loading && !messages[messages.length - 1]?.content && (
               <div style={{ ...S.row, justifyContent: "flex-start" }}>
-                <BandhanLogo size={32} id="bbAvatarTyping" style={{ flexShrink: 0 }} />
+                <div style={S.avatar}>B</div>
                 <div style={S.botBubble}><span className="dot" /><span className="dot" /><span className="dot" /></div>
               </div>
             )}

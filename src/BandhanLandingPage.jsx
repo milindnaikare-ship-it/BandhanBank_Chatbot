@@ -11,7 +11,6 @@ import {
   faWhatsapp, faApple, faGooglePlay,
 } from "@fortawesome/free-brands-svg-icons";
 import BandhanChatbotDemo from "./BandhanChatbotDemo";
-import BandhanLogo from "./BandhanLogo";
 
 // ---- Brand theme (Bandhan Bank site) --------------------------------------
 const RED = "#D91F2C";
@@ -105,7 +104,7 @@ export default function BandhanLandingPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 40px", maxWidth: 1364, margin: "0 auto" }}>
           {/* Logo */}
           <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-            <BandhanLogo size={44} id="bbHeader" />
+            <div style={{ width: 44, height: 44, borderRadius: 9, background: RED, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "'Lato',serif", fontSize: 24, fontWeight: 900 }}>৳</div>
             <div>
               <div style={{ fontFamily: "'Lato',sans-serif", fontSize: 19, fontWeight: 900, color: NAVY, lineHeight: 1 }}>Bandhan Bank</div>
               <div style={{ fontSize: 9.5, color: RED, letterSpacing: 1.5, fontWeight: 700, marginTop: 3 }}>AAPKA BHALA, SABKI BHALAI</div>
@@ -229,7 +228,7 @@ export default function BandhanLandingPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1fr 1fr 1fr", gap: 34, paddingBottom: 40 }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-                <BandhanLogo size={40} id="bbFooter" />
+                <div style={{ width: 40, height: 40, borderRadius: 8, background: RED, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "'Lato',serif", fontSize: 21, fontWeight: 900 }}>৳</div>
                 <div style={{ fontFamily: "'Lato',sans-serif", fontSize: 17, fontWeight: 900, color: "#fff" }}>Bandhan Bank</div>
               </div>
               <p style={{ fontSize: 13, lineHeight: 1.7, color: "#8ea4b8", marginBottom: 18 }}>DN-32, Sector V, Salt Lake City,<br />Kolkata – 700091, West Bengal, India</p>
