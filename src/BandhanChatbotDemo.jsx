@@ -4,8 +4,9 @@ import remarkGfm from "remark-gfm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMicrophone, faVolumeHigh, faVolumeXmark, faBan, faStop,
-  faThumbsUp, faThumbsDown, faPaperPlane, faHeadset, faPhone,
+  faThumbsUp, faThumbsDown, faPaperPlane, faHeadset, faPhone, faGripVertical,
 } from "@fortawesome/free-solid-svg-icons";
+import BankingServices from "./BankingServices";
 
 const ANON_NOTE = "\nANONYMOUS SESSION — no customer data may be shared. If asked for balances or personal details, explain they need to verify with their registered mobile (offer the 'Existing customer' login).";
 const REP_NUMBER = "18002588181";
@@ -70,6 +71,7 @@ const T = {
     callPrefix: "Call",
     disclaimer: "Demo prototype · Rates & details are indicative — verify on bandhanbank.com · Bandhan Bank never asks for your OTP, PIN or CVV · 24x7 helpline 1800 258 8181",
     logout: "Logout", switchMode: "Switch mode",
+    servicesBtn: "Self-service Banking",
   },
   hi: {
     tagline: "वर्चुअल असिस्टेंट · डेमो प्रोटोटाइप",
@@ -100,6 +102,7 @@ const T = {
     callPrefix: "कॉल करें",
     disclaimer: "डेमो प्रोटोटाइप · दरें और विवरण सांकेतिक हैं — bandhanbank.com पर सत्यापित करें · बंधन बैंक कभी आपका OTP, PIN या CVV नहीं पूछता · 24x7 हेल्पलाइन 1800 258 8181",
     logout: "लॉग आउट", switchMode: "मोड बदलें",
+    servicesBtn: "सेल्फ-सर्विस बैंकिंग",
   },
   bn: {
     tagline: "ভার্চুয়াল অ্যাসিস্ট্যান্ট · ডেমো প্রোটোটাইপ",
@@ -130,6 +133,7 @@ const T = {
     callPrefix: "কল করুন",
     disclaimer: "ডেমো প্রোটোটাইপ · হার ও বিবরণ সূচক — bandhanbank.com-এ যাচাই করুন · বন্ধন ব্যাঙ্ক কখনও আপনার OTP, PIN বা CVV চায় না · ২৪x৭ হেল্পলাইন 1800 258 8181",
     logout: "লগ আউট", switchMode: "মোড পরিবর্তন করুন",
+    servicesBtn: "সেল্ফ-সার্ভিস ব্যাংকিং",
   },
   mr: {
     tagline: "व्हर्च्युअल असिस्टंट · डेमो प्रोटोटाइप",
@@ -160,6 +164,7 @@ const T = {
     callPrefix: "कॉल करा",
     disclaimer: "डेमो प्रोटोटाइप · दर आणि तपशील सूचक आहेत — bandhanbank.com वर पडताळा · बंधन बँक कधीही तुमचा OTP, PIN किंवा CVV विचारत नाही · 24x7 हेल्पलाइन 1800 258 8181",
     logout: "लॉग आउट", switchMode: "मोड बदला",
+    servicesBtn: "सेल्फ-सर्व्हिस बँकिंग",
   },
   hinglish: {
     tagline: "Virtual Assistant · Demo Prototype",
@@ -190,6 +195,7 @@ const T = {
     callPrefix: "Call karein",
     disclaimer: "Demo prototype · Rates aur details indicative hain — bandhanbank.com par verify karein · Bandhan Bank kabhi aapka OTP, PIN ya CVV nahi poochta · 24x7 helpline 1800 258 8181",
     logout: "Logout", switchMode: "Mode badlein",
+    servicesBtn: "Self-service Banking",
   },
 };
 
@@ -349,6 +355,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
   const [voiceMode, setVoiceMode] = useState("on");
   const [listening, setListening] = useState(false);
   const [speakingIdx, setSpeakingIdx] = useState(null);
+  const [servicesOpen, setServicesOpen] = useState(false);
 
   const endRef = useRef(null);
   const voiceModeRef = useRef("on");
@@ -586,7 +593,14 @@ export default function BandhanChatbotDemo({ embedded = false }) {
   const reset = () => {
     stopSpeaking(); stopListening();
     downCountRef.current = 0;
+    setServicesOpen(false);
     setMode(null); setAuthStep("mobile"); setMobile(""); setOtp(""); setMessages([]); setAuthError("");
+  };
+
+  // A guided banking flow finished — post its (masked, non-sensitive) confirmation into the chat.
+  // The panel stays open to show its success screen; it closes via its own Done/close button.
+  const onServiceComplete = (text) => {
+    setMessages((m) => [...m, { role: "assistant", content: text, service: true }]);
   };
   const chips = mode === "auth" ? t.chipsAuth : t.chipsVisitor;
 
@@ -594,7 +608,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
   const voiceTitle = voiceMode === "on" ? "Voice replies ON — tap to mute" : voiceMode === "muted" ? "Voice MUTED — tap to switch off" : "Voice OFF — tap to turn on";
 
   return (
-    <div className="bsa-root" style={{ ...S.page, fontFamily: fonts.body, ...(embedded ? { minHeight: 0, height: "100%", overflow: "hidden" } : {}) }}>
+    <div className="bsa-root" style={{ ...S.page, position: "relative", fontFamily: fonts.body, ...(embedded ? { minHeight: 0, height: "100%", overflow: "hidden" } : {}) }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=Roboto:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;500;700&family=Noto+Sans+Bengali:wght@400;500;700&display=swap');
         @keyframes rise { from { opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
@@ -794,6 +808,13 @@ export default function BandhanChatbotDemo({ embedded = false }) {
             <div ref={endRef} />
           </main>
 
+          {mode === "auth" && (
+            <button style={S.servicesBtn} onClick={() => setServicesOpen(true)}>
+              <FontAwesomeIcon icon={faGripVertical} />
+              {t.servicesBtn}
+            </button>
+          )}
+
           <div style={S.chipRow}>
             {chips.map((c) => (
               <button key={c} className="chip" style={S.chip} onClick={() => send(c)} disabled={loading}>{c}</button>
@@ -828,6 +849,8 @@ export default function BandhanChatbotDemo({ embedded = false }) {
           <p style={S.disclaimer}>{t.disclaimer}</p>
         </>
       )}
+
+      {servicesOpen && <BankingServices onClose={() => setServicesOpen(false)} onComplete={onServiceComplete} />}
     </div>
   );
 }
@@ -871,6 +894,7 @@ const S = {
   avatar: { width: 32, height: 32, borderRadius: "50%", background: "#7A0C1E", color: "#FFF8F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Roboto Slab',serif", fontWeight: 700, flexShrink: 0 },
   botBubble: { maxWidth: "78%", background: "#FFFDFA", border: "1px solid #EBD9C8", borderRadius: "14px 14px 14px 4px", padding: "12px 14px", fontSize: 15, lineHeight: 1.55, boxShadow: "0 3px 10px rgba(122,12,30,.06)" },
   userBubble: { maxWidth: "78%", background: "#7A0C1E", color: "#FFF8F0", borderRadius: "14px 14px 4px 14px", padding: "12px 14px", fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" },
+  servicesBtn: { display: "flex", alignItems: "center", justifyContent: "center", gap: 9, background: "#7A0C1E", color: "#FFF8F0", border: "none", borderRadius: 12, padding: "11px 16px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Roboto',sans-serif", maxWidth: 760, margin: "8px auto 0", width: "calc(100% - 32px)", boxSizing: "border-box", boxShadow: "0 6px 16px rgba(122,12,30,.18)" },
   chipRow: { display: "flex", gap: 8, flexWrap: "wrap", padding: "6px 16px 10px", maxWidth: 760, margin: "0 auto", width: "100%", boxSizing: "border-box" },
   chip: { background: "#FFFDFA", border: "1.5px solid #D9B8A4", color: "#7A0C1E", borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Roboto',sans-serif", transition: "all .15s" },
   inputBar: { display: "flex", gap: 10, padding: "10px 16px", maxWidth: 760, margin: "0 auto", width: "100%", boxSizing: "border-box" },
