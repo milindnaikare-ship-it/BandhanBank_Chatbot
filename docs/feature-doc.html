@@ -1,0 +1,220 @@
+<title>Bandhan Sahayak — Feature & Sales Guide</title>
+<style>
+  :root{
+    --paper:#F5F7FA; --card:#FFFFFF; --ink:#0B2032; --muted:#5C6B7A;
+    --line:#E3E9EF; --accent:#D91F2C; --accent-dk:#B0121E; --navy:#0B2032;
+    --soft:#EEF2F7; --good:#137a43;
+    --maxw:860px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--paper:#0A141D; --card:#12212E; --ink:#EAF1F7; --muted:#93A4B3;
+      --line:#213141; --soft:#16283664; --navy:#0e1c28;}
+  }
+  :root[data-theme="light"]{--paper:#F5F7FA;--card:#FFFFFF;--ink:#0B2032;--muted:#5C6B7A;--line:#E3E9EF;--soft:#EEF2F7;--navy:#0B2032;}
+  :root[data-theme="dark"]{--paper:#0A141D;--card:#12212E;--ink:#EAF1F7;--muted:#93A4B3;--line:#213141;--soft:#16283664;--navy:#0e1c28;}
+
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  a{color:var(--accent);}
+
+  /* Masthead */
+  .top{background:var(--navy);color:#fff;padding:54px 0 46px;position:relative;overflow:hidden;}
+  .top:before{content:"";position:absolute;inset:0;opacity:.09;
+    background:radial-gradient(circle at 82% 18%,#fff 1.5px,transparent 1.6px);background-size:34px 34px;}
+  .brandrow{display:flex;align-items:center;gap:13px;margin-bottom:26px;position:relative;}
+  .logo{width:44px;height:44px;border-radius:11px;background:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .logo svg{display:block;}
+  .brandname{font-weight:800;font-size:18px;letter-spacing:.2px;}
+  .brandsub{font-size:11px;letter-spacing:2px;color:#F3A9AE;font-weight:700;margin-top:2px;}
+  .eyebrow{font-size:12px;letter-spacing:3px;text-transform:uppercase;font-weight:800;color:#F3A9AE;position:relative;}
+  h1{font-size:clamp(30px,5vw,48px);line-height:1.08;font-weight:800;margin:12px 0 14px;letter-spacing:-.5px;text-wrap:balance;position:relative;}
+  .lede{font-size:clamp(15px,1.7vw,18px);color:#C6D3DF;max-width:60ch;position:relative;margin:0;}
+  .pitch{position:relative;margin-top:26px;border-left:3px solid var(--accent);background:rgba(255,255,255,.06);
+    padding:16px 20px;border-radius:0 10px 10px 0;font-size:15px;color:#EAF1F7;max-width:62ch;}
+  .pitch b{color:#fff;}
+
+  /* Stat band */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:-32px auto 0;position:relative;z-index:3;box-shadow:0 18px 40px rgba(11,32,50,.14);}
+  .stat{background:var(--card);padding:20px 18px;}
+  .stat .n{font-size:26px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-.5px;}
+  .stat .l{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.35;}
+
+  section{padding:44px 0 4px;}
+  .kicker{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;font-weight:800;color:var(--accent);}
+  h2{font-size:clamp(21px,3vw,27px);font-weight:800;margin:8px 0 20px;letter-spacing:-.3px;text-wrap:balance;}
+  h3{font-size:16px;font-weight:800;margin:0 0 6px;}
+  p{margin:0 0 14px;color:var(--ink);}
+  .sub{color:var(--muted);}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 20px;}
+  .card .tag{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:9px;}
+  .card p{font-size:13.5px;color:var(--muted);margin:0;}
+  .card ul{margin:8px 0 0;padding-left:18px;}
+  .card li{font-size:13.5px;color:var(--muted);margin-bottom:5px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .tscroll{overflow-x:auto;border-radius:12px;}
+  th{background:var(--navy);color:#fff;text-align:left;padding:11px 14px;font-size:12.5px;font-weight:700;white-space:nowrap;}
+  td{padding:10px 14px;border-top:1px solid var(--line);color:var(--ink);vertical-align:top;}
+  td.m{color:var(--muted);}
+
+  ol.flow{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:10px;}
+  ol.flow li{counter-increment:s;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:13px 16px 13px 52px;position:relative;font-size:14px;}
+  ol.flow li:before{content:counter(s);position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;font-weight:800;font-size:13px;
+    display:flex;align-items:center;justify-content:center;}
+  ol.flow b{font-weight:700;}
+
+  .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .pillar{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;}
+  .pillar .num{font-size:12px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;}
+  .pillar h3{margin:6px 0 6px;font-size:15px;}
+  .pillar p{font-size:13px;color:var(--muted);margin:0;}
+
+  .note{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-size:13px;color:var(--muted);}
+  .note b{color:var(--ink);}
+
+  footer{margin-top:40px;padding:26px 0 46px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .chip{font-size:12px;font-weight:700;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 13px;}
+
+  @media(max-width:720px){
+    .stats{grid-template-columns:1fr 1fr;}
+    .grid2,.grid3,.pillars{grid-template-columns:1fr;}
+  }
+</style>
+
+<div class="top">
+  <div class="wrap">
+    <div class="brandrow">
+      <span class="logo">
+        <svg width="30" height="30" viewBox="0 0 100 100"><defs><linearGradient id="g" x1="100%" y1="0" x2="0" y2="100%"><stop offset="0" stop-color="#F1583B"/><stop offset=".55" stop-color="#DA2824"/><stop offset="1" stop-color="#A81616"/></linearGradient></defs><circle cx="50" cy="50" r="50" fill="url(#g)"/><path d="M50 13C31 30 31 68 50 87 69 68 69 30 50 13Z" fill="#fff"/><path d="M50 17C44 40 44 60 50 83 56 60 56 40 50 17Z" fill="url(#g)"/></svg>
+      </span>
+      <div><div class="brandname">Bandhan Sahayak</div><div class="brandsub">AI VIRTUAL ASSISTANT</div></div>
+    </div>
+    <div class="eyebrow">Feature &amp; Sales Enablement Guide</div>
+    <h1>An AI banker that answers accurately, speaks five languages, and lets customers self-serve securely.</h1>
+    <p class="lede">A knowledge-grounded conversational assistant that embeds natively into the bank's website — deflecting calls, easing branch load, and turning "I'll visit the branch" into "I did it in the app."</p>
+    <div class="pitch"><b>The pitch:</b> A multilingual, voice-enabled AI banker that answers from <b>your</b> knowledge base and lets customers self-serve securely — live on your website in weeks.</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><div class="n">5</div><div class="l">Languages, in text &amp; voice</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">Guided self-service journeys</div></div>
+    <div class="stat"><div class="n">24×7</div><div class="l">Always-on, zero added staff</div></div>
+    <div class="stat"><div class="n">RAG</div><div class="l">Grounded answers, not guesses</div></div>
+  </div>
+
+  <section>
+    <div class="kicker">The Opportunity</div>
+    <h2>Where a bank loses time and customers today</h2>
+    <div class="tscroll"><table>
+      <thead><tr><th>Pain point</th><th>Impact on the bank</th><th>How Bandhan Sahayak helps</th></tr></thead>
+      <tbody>
+        <tr><td>Routine queries flood calls &amp; branches</td><td class="m">Cost per contact, long queues</td><td class="m">Deflects FAQs &amp; routine service to chat, 24×7</td></tr>
+        <tr><td>Customers abandon complex journeys</td><td class="m">Lost engagement, more tickets</td><td class="m">Guided step-by-step flows with secure widgets</td></tr>
+        <tr><td>Language barriers across India</td><td class="m">Regional customers excluded</td><td class="m">5 languages, in text <em>and</em> voice</td></tr>
+        <tr><td>Generic bots invent wrong answers</td><td class="m">Compliance &amp; trust risk</td><td class="m">Answers grounded in the bank's own content</td></tr>
+        <tr><td>After-hours service gaps</td><td class="m">Customer frustration</td><td class="m">Instant responses, any hour</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <div class="kicker">What It Does</div>
+    <h2>Feature catalogue</h2>
+    <div class="grid2">
+      <div class="card"><div class="tag">Grounded Conversational AI</div>
+        <ul><li>Retrieval-Augmented answers from the bank's own knowledge base</li><li>On-brand tone with strict guardrails (never asks for OTP/PIN/CVV)</li><li>Rich tables, lists &amp; headings — not walls of text</li><li>Streaming replies appear word-by-word in real time</li></ul></div>
+      <div class="card"><div class="tag">Multilingual — Text &amp; Voice</div>
+        <ul><li>English, Hindi, Bengali, Marathi &amp; Hinglish</li><li>Voice input (speech-to-text) and spoken replies</li><li>Premium neural voices tuned for Indian languages</li><li>Low-latency: speech starts on the first sentence</li></ul></div>
+      <div class="card"><div class="tag">Guided Self-Service Banking</div>
+        <ul><li>Reset debit-card PIN · Manage nominee</li><li>Add/edit/delete beneficiaries · Fund transfers</li><li>Open FD / RD with live rates &amp; maturity preview</li><li>Button-driven flows with secure input widgets</li></ul></div>
+      <div class="card"><div class="tag">Trust, Security &amp; Compliance</div>
+        <ul><li>Two-step login + step-up OTP on every sensitive action</li><li>Data masking everywhere (XXXX XXXX XXXX 1234)</li><li>OTP lockout, beneficiary cooling, channel limits</li><li>Idempotency + reference numbers for every action</li></ul></div>
+      <div class="card"><div class="tag">Escalation &amp; Feedback</div>
+        <ul><li>Per-message thumbs up/down to track satisfaction</li><li>Proactive hand-off to a human representative</li><li>24×7 helpline surfaced when needed</li></ul></div>
+      <div class="card"><div class="tag">Native Website Experience</div>
+        <ul><li>Floating widget + sticky "Be our customer!" ribbon</li><li>Fully themed to the bank's brand — looks first-party</li><li>Accessibility-aware, responsive layout</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Why We Win</div>
+    <h2>What sets it apart from a generic chatbot</h2>
+    <div class="pillars">
+      <div class="pillar"><div class="num">01</div><h3>Grounded, not guessing</h3><p>RAG on your own content means accurate, compliant answers — the #1 failure of ordinary bots.</p></div>
+      <div class="pillar"><div class="num">02</div><h3>True Indian voice</h3><p>Five languages in both text and premium voice, not English text alone.</p></div>
+      <div class="pillar"><div class="num">03</div><h3>Real transactions</h3><p>Secure guided journeys make it a service channel, not just a deflection tool.</p></div>
+      <div class="pillar"><div class="num">04</div><h3>Bank-grade by design</h3><p>Masking, step-up OTP, cooling periods, idempotency, audit references.</p></div>
+      <div class="pillar"><div class="num">05</div><h3>Native look &amp; feel</h3><p>Brand-themed embed that elevates the site rather than cluttering it.</p></div>
+      <div class="pillar"><div class="num">06</div><h3>Fast, human UX</h3><p>Streaming text and sentence-level voice make it feel quick and alive.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Under The Hood</div>
+    <h2>Technology foundation</h2>
+    <div class="tscroll"><table>
+      <thead><tr><th>Layer</th><th>Technology</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td>Conversational engine</td><td class="m">Anthropic Claude Haiku 4.5</td><td class="m">Fast &amp; cost-efficient; upgrade path to Sonnet/Opus</td></tr>
+        <tr><td>Knowledge retrieval</td><td class="m">Pinecone vector database</td><td class="m">Ingest the KB once, search per query for grounded answers</td></tr>
+        <tr><td>Voice</td><td class="m">Google Cloud Neural TTS + speech input</td><td class="m">Natural Indian-language speech, both directions</td></tr>
+        <tr><td>Delivery</td><td class="m">React SPA + serverless functions</td><td class="m">Light footprint, deploys to a static host</td></tr>
+        <tr><td>Integration</td><td class="m">Clean seams to the bank's CBS/APIs</td><td class="m">Journeys ready to plug into live core banking</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <div class="kicker">In The Room</div>
+    <h2>Five-minute demo script</h2>
+    <ol class="flow">
+      <li>Open the site — point out the <b>native-branded widget</b> and "Be our customer!" ribbon.</li>
+      <li>Ask <b>"Compare your savings accounts"</b> — show the grounded, table-formatted answer.</li>
+      <li>Switch to <b>Hindi or Bengali</b> and ask again — same quality, in-language.</li>
+      <li>Use <b>voice</b> — speak a query and let the assistant read the answer aloud.</li>
+      <li>Log in as an existing customer, open <b>Self-service Banking</b>.</li>
+      <li>Run a <b>Fund Transfer</b>: payee → summary → OTP → UTR reference (note the masking).</li>
+      <li>Open an <b>FD</b>: live rates, maturity preview, instant booking.</li>
+      <li>Trigger <b>feedback / escalation</b> to show the human hand-off.</li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="kicker">Know Your Room</div>
+    <h2>Positioning &amp; objection handling</h2>
+    <div class="grid2">
+      <div class="card"><div class="tag">Lead with — by stakeholder</div>
+        <ul><li><b>CXO:</b> cost deflection, 24×7 CX, financial inclusion</li><li><b>Head of Digital:</b> native embed, voice, CBS roadmap</li><li><b>Compliance:</b> masking, step-up OTP, audit references</li><li><b>CTO:</b> RAG accuracy, managed stack, clean API seams</li></ul></div>
+      <div class="card"><div class="tag">Answering the tough ones</div>
+        <ul><li><b>"Bots give wrong answers"</b> → RAG on your content + escalation</li><li><b>"Our customers don't speak English"</b> → 5 languages, incl. voice</li><li><b>"Secure enough for money?"</b> → OTP, masking, idempotency</li><li><b>"Integration takes forever"</b> → clean seams; rails already live</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Where It Stands</div>
+    <h2>Status &amp; roadmap</h2>
+    <div class="grid2">
+      <div class="card"><div class="tag">Available today (demo)</div><p>Grounded multilingual chat in text &amp; voice, five self-service journeys with secure widgets, feedback &amp; escalation, and a brand-themed native embed.</p></div>
+      <div class="card"><div class="tag">Productionisation (next)</div><p>Integrate journeys with the bank's live CBS/APIs; real OTP infrastructure, audit logging &amp; analytics; compliance finalisation; optional WhatsApp / app channels &amp; more languages.</p></div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="note"><b>For the field team:</b> This is a working proof-of-concept. Rates, figures and the demo customer are illustrative. Security controls shown reflect the <b>design intent</b>; final controls are confirmed with the bank's compliance and engineering teams during productionisation.</div>
+  </section>
+
+  <footer>
+    <div>Bandhan Sahayak · Feature &amp; Sales Enablement Guide · Prepared by Business Analysis, Applied Cloud Computing</div>
+    <div class="chips"><span class="chip">Grounded AI</span><span class="chip">5 languages</span><span class="chip">Voice in &amp; out</span><span class="chip">Secure self-service</span><span class="chip">Native embed</span></div>
+  </footer>
+</div>
