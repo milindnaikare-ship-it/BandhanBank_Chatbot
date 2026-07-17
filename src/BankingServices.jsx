@@ -17,18 +17,18 @@ import { makeTr, relLabel } from "./bankingI18n";
 // ===========================================================================
 // Shared UI primitives
 // ===========================================================================
-const C = { maroon: "#7A0C1E", accent: "#B91230", cream: "#FFF8F0", card: "#FFFDFA", border: "#E8D5C4", line: "#EBD9C8", text: "#2B1A14", muted: "#6B5247", ok: "#1B7A3D", warn: "#B26A00" };
+const C = { maroon: "#092E4F", accent: "#D91F2C", cream: "#FFFFFF", card: "#FFFFFF", border: "#E2E8F0", line: "#E2E8F0", text: "#10222F", muted: "#5A6B7B", ok: "#1B7A3D", warn: "#B26A00" };
 
 const bs = {
-  overlay: { position: "absolute", inset: 0, background: "rgba(43,26,20,.45)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 40 },
-  sheet: { background: C.cream, width: "100%", maxWidth: 560, maxHeight: "92%", borderTopLeftRadius: 18, borderTopRightRadius: 18, display: "flex", flexDirection: "column", boxShadow: "0 -8px 30px rgba(122,12,30,.25)", overflow: "hidden" },
+  overlay: { position: "absolute", inset: 0, background: "rgba(16,34,47,.45)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 40 },
+  sheet: { background: C.cream, width: "100%", maxWidth: 560, maxHeight: "92%", borderTopLeftRadius: 18, borderTopRightRadius: 18, display: "flex", flexDirection: "column", boxShadow: "0 -8px 30px rgba(9,46,79,.25)", overflow: "hidden" },
   head: { display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", background: C.maroon, color: C.cream },
   headTitle: { fontWeight: 700, fontSize: 16, flex: 1 },
   iconBtn: { background: "transparent", border: "none", color: C.cream, cursor: "pointer", fontSize: 18, padding: 4 },
   body: { padding: 16, overflowY: "auto" },
   menuGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
-  menuCard: { display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start", padding: "16px 14px", background: C.card, border: `1.5px solid ${C.border}`, borderRadius: 14, cursor: "pointer", textAlign: "left", boxShadow: "0 6px 16px rgba(122,12,30,.06)" },
-  menuEmoji: { width: 38, height: 38, borderRadius: 10, background: "#FBEDE2", color: C.maroon, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 },
+  menuCard: { display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start", padding: "16px 14px", background: C.card, border: `1.5px solid ${C.border}`, borderRadius: 14, cursor: "pointer", textAlign: "left", boxShadow: "0 6px 16px rgba(9,46,79,.06)" },
+  menuEmoji: { width: 38, height: 38, borderRadius: 10, background: "#F5F7FA", color: C.maroon, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 },
   menuTitle: { fontWeight: 700, fontSize: 14.5, color: C.text },
   menuDesc: { fontSize: 12, color: C.muted, lineHeight: 1.4 },
   label: { display: "block", fontSize: 12.5, fontWeight: 600, color: C.muted, margin: "12px 0 5px" },

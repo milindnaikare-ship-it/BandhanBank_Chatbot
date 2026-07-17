@@ -613,16 +613,16 @@ export default function BandhanChatbotDemo({ embedded = false }) {
         @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=Roboto:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;500;700&family=Noto+Sans+Bengali:wght@400;500;700&display=swap');
         @keyframes rise { from { opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
         @keyframes pulse { 0%,100%{opacity:.35} 50%{opacity:1} }
-        @keyframes micPulse { 0%,100%{box-shadow:0 0 0 0 rgba(185,18,48,.5)} 50%{box-shadow:0 0 0 9px rgba(185,18,48,0)} }
+        @keyframes micPulse { 0%,100%{box-shadow:0 0 0 0 rgba(217,31,44,.5)} 50%{box-shadow:0 0 0 9px rgba(217,31,44,0)} }
         .bsa-root, .bsa-root input, .bsa-root textarea, .bsa-root button, .bsa-root select,
         .bsa-root p, .bsa-root li, .bsa-root td, .bsa-root th, .bsa-root span, .bsa-root strong, .bsa-root label { font-family: ${fonts.body} !important; }
         .bsa-root h1, .bsa-root h2, .bsa-root h3, .bsa-root .heading { font-family: ${fonts.heading} !important; }
         .msg { animation: rise .35s ease both; }
-        .chip:hover { background:#7A0C1E !important; color:#FFF8F0 !important; border-color:#7A0C1E !important; }
-        .dot { width:7px; height:7px; border-radius:50%; background:#7A0C1E; display:inline-block; margin-right:4px; animation:pulse 1s infinite; }
+        .chip:hover { background:#092E4F !important; color:#FFFFFF !important; border-color:#092E4F !important; }
+        .dot { width:7px; height:7px; border-radius:50%; background:#092E4F; display:inline-block; margin-right:4px; animation:pulse 1s infinite; }
         .dot:nth-child(2){animation-delay:.2s} .dot:nth-child(3){animation-delay:.4s}
-        textarea:focus, input:focus, select:focus { outline:2px solid #B91230; }
-        .botBubble table tr:nth-child(even) td { background: #FFF8F0; }
+        textarea:focus, input:focus, select:focus { outline:2px solid #D91F2C; }
+        .botBubble table tr:nth-child(even) td { background: #FFFFFF; }
         .mic-listening { animation: micPulse 1.2s infinite; }
         .iconBtn:hover { filter: brightness(.97); }
       `}</style>
@@ -725,7 +725,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
                           </button>
                         </div>
                       ) : (
-                        <div style={{ fontSize: 12, color: "#8A6F60", fontStyle: "italic" }}>
+                        <div style={{ fontSize: 12, color: "#8595A3", fontStyle: "italic" }}>
                           {m.resolved === "connect" ? t.connectBtn : t.continueBtn} ✓
                         </div>
                       )}
@@ -739,7 +739,7 @@ export default function BandhanChatbotDemo({ embedded = false }) {
                   <div key={i} className="msg" style={{ ...S.row, justifyContent: "flex-start" }}>
                     <div style={S.avatar}><FontAwesomeIcon icon={faHeadset} style={{ fontSize: 14 }} /></div>
                     <div style={S.escalationCard}>
-                      <div className="heading" style={{ fontWeight: 700, color: "#7A0C1E", marginBottom: 6 }}>{t.escalationTitle}</div>
+                      <div className="heading" style={{ fontWeight: 700, color: "#092E4F", marginBottom: 6 }}>{t.escalationTitle}</div>
                       <div style={{ fontSize: 13, color: "#5a4a42", lineHeight: 1.5, marginBottom: 12 }}>
                         {t.escalationBody}
                       </div>
@@ -857,65 +857,65 @@ export default function BandhanChatbotDemo({ embedded = false }) {
 
 const MD = {
   p: ({ children }) => <p style={{ margin: "0 0 8px", lineHeight: 1.55 }}>{children}</p>,
-  strong: ({ children }) => <strong style={{ color: "#7A0C1E", fontWeight: 700 }}>{children}</strong>,
+  strong: ({ children }) => <strong style={{ color: "#092E4F", fontWeight: 700 }}>{children}</strong>,
   ul: ({ children }) => <ul style={{ margin: "4px 0 8px", paddingLeft: 18 }}>{children}</ul>,
   ol: ({ children }) => <ol style={{ margin: "4px 0 8px", paddingLeft: 18 }}>{children}</ol>,
   li: ({ children }) => <li style={{ marginBottom: 4, lineHeight: 1.5 }}>{children}</li>,
-  h3: ({ children }) => <h3 style={{ fontSize: 14, fontWeight: 700, color: "#7A0C1E", margin: "10px 0 4px" }}>{children}</h3>,
+  h3: ({ children }) => <h3 style={{ fontSize: 14, fontWeight: 700, color: "#092E4F", margin: "10px 0 4px" }}>{children}</h3>,
   table: ({ children }) => <div style={{ overflowX: "auto", margin: "6px 0" }}><table style={{ borderCollapse: "collapse", width: "100%", fontSize: 13 }}>{children}</table></div>,
-  thead: ({ children }) => <thead style={{ background: "#7A0C1E", color: "#FFF8F0" }}>{children}</thead>,
+  thead: ({ children }) => <thead style={{ background: "#092E4F", color: "#FFFFFF" }}>{children}</thead>,
   th: ({ children }) => <th style={{ padding: "6px 10px", textAlign: "left", fontWeight: 700, whiteSpace: "nowrap" }}>{children}</th>,
-  td: ({ children }) => <td style={{ padding: "5px 10px", borderBottom: "1px solid #EBD9C8" }}>{children}</td>,
+  td: ({ children }) => <td style={{ padding: "5px 10px", borderBottom: "1px solid #E2E8F0" }}>{children}</td>,
   tr: ({ children }) => <tr>{children}</tr>,
 };
 
 const S = {
-  page: { fontFamily: "'Roboto', sans-serif", background: "linear-gradient(180deg,#FFF8F0 0%,#FBEDE2 100%)", minHeight: "100vh", display: "flex", flexDirection: "column", color: "#2B1A14" },
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", background: "#7A0C1E", color: "#FFF8F0", boxShadow: "0 2px 14px rgba(122,12,30,.35)" },
+  page: { fontFamily: "'Open Sans','Roboto',sans-serif", background: "#F5F7FA", minHeight: "100vh", display: "flex", flexDirection: "column", color: "#10222F" },
+  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", background: "#D91F2C", color: "#FFFFFF", boxShadow: "0 2px 14px rgba(217,31,44,.35)" },
   logoBox: { display: "flex", alignItems: "center", gap: 12 },
-  logoMark: { width: 42, height: 42, borderRadius: 10, background: "#FFF8F0", color: "#7A0C1E", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Roboto Slab', serif", fontSize: 24, fontWeight: 700 },
+  logoMark: { width: 42, height: 42, borderRadius: 10, background: "#FFFFFF", color: "#092E4F", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Roboto Slab', serif", fontSize: 24, fontWeight: 700 },
   bankName: { fontFamily: "'Roboto Slab', serif", fontSize: 20, fontWeight: 700, letterSpacing: ".3px" },
   tagline: { fontSize: 12, opacity: 0.85 },
-  exitBtn: { background: "transparent", color: "#FFF8F0", border: "1px solid rgba(255,248,240,.5)", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontFamily: "'Roboto',sans-serif", fontWeight: 700 },
+  exitBtn: { background: "transparent", color: "#FFFFFF", border: "1px solid rgba(255,255,255,.5)", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontFamily: "'Roboto',sans-serif", fontWeight: 700 },
   gate: { margin: "auto", textAlign: "center", padding: 24, maxWidth: 640 },
-  gateTitle: { fontFamily: "'Roboto Slab', serif", fontSize: 30, margin: "0 0 8px", color: "#7A0C1E" },
-  gateSub: { color: "#6B5247", marginBottom: 28 },
+  gateTitle: { fontFamily: "'Roboto Slab', serif", fontSize: 30, margin: "0 0 8px", color: "#092E4F" },
+  gateSub: { color: "#5A6B7B", marginBottom: 28 },
   gateCards: { display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" },
-  gateCard: { display: "flex", flexDirection: "column", gap: 6, alignItems: "center", width: 240, padding: "26px 18px", background: "#FFFDFA", border: "1.5px solid #E8D5C4", borderRadius: 16, cursor: "pointer", fontFamily: "'Roboto',sans-serif", fontSize: 15, boxShadow: "0 8px 24px rgba(122,12,30,.08)" },
+  gateCard: { display: "flex", flexDirection: "column", gap: 6, alignItems: "center", width: 240, padding: "26px 18px", background: "#FFFFFF", border: "1.5px solid #E2E8F0", borderRadius: 16, cursor: "pointer", fontFamily: "'Roboto',sans-serif", fontSize: 15, boxShadow: "0 8px 24px rgba(9,46,79,.08)" },
   gateEmoji: { fontSize: 30 },
-  gateDesc: { fontSize: 13, color: "#6B5247" },
+  gateDesc: { fontSize: 13, color: "#5A6B7B" },
   label: { display: "block", fontWeight: 700, fontSize: 14, margin: "14px 0 6px" },
-  input: { width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid #E8D5C4", fontSize: 16, fontFamily: "'Roboto',sans-serif", background: "#FFFDFA", boxSizing: "border-box" },
-  primaryBtn: { marginTop: 14, width: "100%", padding: "12px 16px", borderRadius: 10, border: "none", background: "#B91230", color: "#FFF8F0", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "'Roboto',sans-serif" },
-  linkBtn: { marginTop: 12, background: "none", border: "none", color: "#7A0C1E", cursor: "pointer", fontFamily: "'Roboto',sans-serif", fontWeight: 700 },
-  error: { color: "#B91230", fontSize: 13, marginTop: 8 },
+  input: { width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid #E2E8F0", fontSize: 16, fontFamily: "'Roboto',sans-serif", background: "#FFFFFF", boxSizing: "border-box" },
+  primaryBtn: { marginTop: 14, width: "100%", padding: "12px 16px", borderRadius: 10, border: "none", background: "#D91F2C", color: "#FFFFFF", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "'Roboto',sans-serif" },
+  linkBtn: { marginTop: 12, background: "none", border: "none", color: "#092E4F", cursor: "pointer", fontFamily: "'Roboto',sans-serif", fontWeight: 700 },
+  error: { color: "#D91F2C", fontSize: 13, marginTop: 8 },
   chatArea: { flex: 1, overflowY: "auto", padding: "20px 16px 8px", maxWidth: 760, width: "100%", margin: "0 auto", boxSizing: "border-box" },
   row: { display: "flex", gap: 10, marginBottom: 14, alignItems: "flex-end" },
-  avatar: { width: 32, height: 32, borderRadius: "50%", background: "#7A0C1E", color: "#FFF8F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Roboto Slab',serif", fontWeight: 700, flexShrink: 0 },
-  botBubble: { maxWidth: "78%", background: "#FFFDFA", border: "1px solid #EBD9C8", borderRadius: "14px 14px 14px 4px", padding: "12px 14px", fontSize: 15, lineHeight: 1.55, boxShadow: "0 3px 10px rgba(122,12,30,.06)" },
-  userBubble: { maxWidth: "78%", background: "#7A0C1E", color: "#FFF8F0", borderRadius: "14px 14px 4px 14px", padding: "12px 14px", fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" },
-  servicesBtn: { display: "flex", alignItems: "center", justifyContent: "center", gap: 9, background: "#7A0C1E", color: "#FFF8F0", border: "none", borderRadius: 12, padding: "11px 16px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Roboto',sans-serif", maxWidth: 760, margin: "8px auto 0", width: "calc(100% - 32px)", boxSizing: "border-box", boxShadow: "0 6px 16px rgba(122,12,30,.18)" },
+  avatar: { width: 32, height: 32, borderRadius: "50%", background: "#092E4F", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Roboto Slab',serif", fontWeight: 700, flexShrink: 0 },
+  botBubble: { maxWidth: "78%", background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: "14px 14px 14px 4px", padding: "12px 14px", fontSize: 15, lineHeight: 1.55, boxShadow: "0 3px 10px rgba(9,46,79,.06)" },
+  userBubble: { maxWidth: "78%", background: "#092E4F", color: "#FFFFFF", borderRadius: "14px 14px 4px 14px", padding: "12px 14px", fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap" },
+  servicesBtn: { display: "flex", alignItems: "center", justifyContent: "center", gap: 9, background: "#092E4F", color: "#FFFFFF", border: "none", borderRadius: 12, padding: "11px 16px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "'Roboto',sans-serif", maxWidth: 760, margin: "8px auto 0", width: "calc(100% - 32px)", boxSizing: "border-box", boxShadow: "0 6px 16px rgba(9,46,79,.18)" },
   chipRow: { display: "flex", gap: 8, flexWrap: "wrap", padding: "6px 16px 10px", maxWidth: 760, margin: "0 auto", width: "100%", boxSizing: "border-box" },
-  chip: { background: "#FFFDFA", border: "1.5px solid #D9B8A4", color: "#7A0C1E", borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Roboto',sans-serif", transition: "all .15s" },
+  chip: { background: "#FFFFFF", border: "1.5px solid #CBD5E1", color: "#092E4F", borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Roboto',sans-serif", transition: "all .15s" },
   inputBar: { display: "flex", gap: 10, padding: "10px 16px", maxWidth: 760, margin: "0 auto", width: "100%", boxSizing: "border-box" },
-  textarea: { flex: 1, resize: "none", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #E8D5C4", fontSize: 15, fontFamily: "'Roboto',sans-serif", background: "#FFFDFA" },
-  disclaimer: { textAlign: "center", fontSize: 11.5, color: "#8A6F60", padding: "4px 16px 14px", maxWidth: 760, margin: "0 auto" },
-  voiceBtn: { background: "transparent", color: "#FFF8F0", border: "1px solid rgba(255,248,240,.5)", borderRadius: 8, width: 38, height: 34, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 },
-  micBtn: { width: 42, height: 42, borderRadius: "50%", border: "1.5px solid #D9B8A4", background: "#FFFDFA", color: "#7A0C1E", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0, transition: "all .15s" },
-  micActive: { background: "#B91230", color: "#FFF8F0", borderColor: "#B91230" },
+  textarea: { flex: 1, resize: "none", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #E2E8F0", fontSize: 15, fontFamily: "'Roboto',sans-serif", background: "#FFFFFF" },
+  disclaimer: { textAlign: "center", fontSize: 11.5, color: "#8595A3", padding: "4px 16px 14px", maxWidth: 760, margin: "0 auto" },
+  voiceBtn: { background: "transparent", color: "#FFFFFF", border: "1px solid rgba(255,255,255,.5)", borderRadius: 8, width: 38, height: 34, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 },
+  micBtn: { width: 42, height: 42, borderRadius: "50%", border: "1.5px solid #CBD5E1", background: "#FFFFFF", color: "#092E4F", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0, transition: "all .15s" },
+  micActive: { background: "#D91F2C", color: "#FFFFFF", borderColor: "#D91F2C" },
   micDisabled: { opacity: 0.4, cursor: "not-allowed" },
-  sendBtn: { width: 48, height: 42, borderRadius: 12, border: "none", background: "#B91230", color: "#FFF8F0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 },
+  sendBtn: { width: 48, height: 42, borderRadius: 12, border: "none", background: "#D91F2C", color: "#FFFFFF", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 },
   fbRow: { display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap", marginTop: 7, paddingLeft: 2 },
-  fbLabel: { fontSize: 11.5, color: "#8A6F60", fontWeight: 500 },
-  fbBtn: { width: 28, height: 28, borderRadius: 8, border: "1.5px solid #E8D5C4", background: "#FFFDFA", color: "#9A8175", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 },
+  fbLabel: { fontSize: 11.5, color: "#8595A3", fontWeight: 500 },
+  fbBtn: { width: 28, height: 28, borderRadius: 8, border: "1.5px solid #E2E8F0", background: "#FFFFFF", color: "#8595A3", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 },
   fbUpActive: { background: "#1b7f3b", borderColor: "#1b7f3b", color: "#fff" },
-  fbDownActive: { background: "#B91230", borderColor: "#B91230", color: "#fff" },
+  fbDownActive: { background: "#D91F2C", borderColor: "#D91F2C", color: "#fff" },
   fbThanks: { fontSize: 11, color: "#1b7f3b", fontWeight: 700 },
-  listenBtn: { width: 28, height: 28, borderRadius: 8, border: "1.5px solid #E8D5C4", background: "#FFFDFA", color: "#7A0C1E", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 },
-  escalationCard: { maxWidth: "86%", background: "#FFF3F0", border: "1.5px solid #F0C9C0", borderRadius: "14px 14px 14px 4px", padding: "14px 16px", boxShadow: "0 3px 10px rgba(122,12,30,.08)" },
-  callBtn: { display: "inline-flex", alignItems: "center", gap: 8, background: "#B91230", color: "#FFF8F0", border: "none", borderRadius: 10, padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "'Roboto',sans-serif" },
-  secondaryBtn: { display: "inline-flex", alignItems: "center", gap: 8, background: "#FFFDFA", color: "#7A0C1E", border: "1.5px solid #D9B8A4", borderRadius: 10, padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "'Roboto',sans-serif" },
-  langPickWrap: { display: "flex", flexDirection: "column", gap: 8, alignItems: "center", marginBottom: 28, padding: "16px 18px", background: "#FFFDFA", border: "1.5px solid #E8D5C4", borderRadius: 14, maxWidth: 340, marginLeft: "auto", marginRight: "auto" },
-  langPickLabel: { fontWeight: 700, fontSize: 14, color: "#7A0C1E" },
-  langSelect: { width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #E8D5C4", fontSize: 15, background: "#fff", cursor: "pointer", color: "#2B1A14" },
+  listenBtn: { width: 28, height: 28, borderRadius: 8, border: "1.5px solid #E2E8F0", background: "#FFFFFF", color: "#092E4F", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 },
+  escalationCard: { maxWidth: "86%", background: "#FFF1F2", border: "1.5px solid #F5C2C7", borderRadius: "14px 14px 14px 4px", padding: "14px 16px", boxShadow: "0 3px 10px rgba(9,46,79,.08)" },
+  callBtn: { display: "inline-flex", alignItems: "center", gap: 8, background: "#D91F2C", color: "#FFFFFF", border: "none", borderRadius: 10, padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "'Roboto',sans-serif" },
+  secondaryBtn: { display: "inline-flex", alignItems: "center", gap: 8, background: "#FFFFFF", color: "#092E4F", border: "1.5px solid #CBD5E1", borderRadius: 10, padding: "10px 18px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "'Roboto',sans-serif" },
+  langPickWrap: { display: "flex", flexDirection: "column", gap: 8, alignItems: "center", marginBottom: 28, padding: "16px 18px", background: "#FFFFFF", border: "1.5px solid #E2E8F0", borderRadius: 14, maxWidth: 340, marginLeft: "auto", marginRight: "auto" },
+  langPickLabel: { fontWeight: 700, fontSize: 14, color: "#092E4F" },
+  langSelect: { width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #E2E8F0", fontSize: 15, background: "#fff", cursor: "pointer", color: "#10222F" },
 };
