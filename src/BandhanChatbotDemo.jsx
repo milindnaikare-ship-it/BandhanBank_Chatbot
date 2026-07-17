@@ -898,7 +898,7 @@ const S = {
   chipRow: { display: "flex", gap: 8, flexWrap: "wrap", padding: "6px 16px 10px", maxWidth: 760, margin: "0 auto", width: "100%", boxSizing: "border-box" },
   chip: { background: "#FFFFFF", border: "1.5px solid #CBD5E1", color: "#092E4F", borderRadius: 999, padding: "7px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Roboto',sans-serif", transition: "all .15s" },
   inputBar: { display: "flex", gap: 10, padding: "10px 16px", maxWidth: 760, margin: "0 auto", width: "100%", boxSizing: "border-box" },
-  textarea: { flex: 1, resize: "none", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #E2E8F0", fontSize: 15, fontFamily: "'Roboto',sans-serif", background: "#FFFFFF" },
+  textarea: { flex: 1, resize: "none", padding: "12px 14px", borderRadius: 12, border: "1.5px solid #E2E8F0", fontSize: 10.5, fontFamily: "'Roboto',sans-serif", background: "#FFFFFF" },
   disclaimer: { textAlign: "center", fontSize: 8, color: "#8595A3", padding: "4px 16px 14px", maxWidth: 760, margin: "0 auto" },
   voiceBtn: { background: "transparent", color: "#FFFFFF", border: "1px solid rgba(255,255,255,.5)", borderRadius: 8, width: 38, height: 34, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 },
   micBtn: { width: 42, height: 42, borderRadius: "50%", border: "1.5px solid #CBD5E1", background: "#FFFFFF", color: "#092E4F", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0, transition: "all .15s" },
