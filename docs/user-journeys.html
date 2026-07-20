@@ -1,0 +1,218 @@
+<title>Bandhan Sahayak — User Journeys & Use Cases</title>
+<style>
+  :root{
+    --paper:#F5F7FA;--card:#FFFFFF;--ink:#0B2032;--muted:#5C6B7A;--line:#E3E9EF;
+    --accent:#D91F2C;--accent-dk:#B0121E;--navy:#0B2032;--soft:#EEF2F7;--good:#137a43;
+    --maxw:900px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--paper:#0A141D;--card:#12212E;--ink:#EAF1F7;--muted:#93A4B3;--line:#213141;--soft:#152633;--navy:#0e1c28;}
+  }
+  :root[data-theme="light"]{--paper:#F5F7FA;--card:#FFFFFF;--ink:#0B2032;--muted:#5C6B7A;--line:#E3E9EF;--soft:#EEF2F7;--navy:#0B2032;}
+  :root[data-theme="dark"]{--paper:#0A141D;--card:#12212E;--ink:#EAF1F7;--muted:#93A4B3;--line:#213141;--soft:#152633;--navy:#0e1c28;}
+
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+
+  .top{background:var(--navy);color:#fff;padding:50px 0 42px;position:relative;overflow:hidden;}
+  .top:before{content:"";position:absolute;inset:0;opacity:.09;background:radial-gradient(circle at 84% 20%,#fff 1.5px,transparent 1.6px);background-size:34px 34px;}
+  .brandrow{display:flex;align-items:center;gap:13px;margin-bottom:24px;position:relative;}
+  .logo{width:44px;height:44px;border-radius:11px;background:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .brandname{font-weight:800;font-size:18px;}
+  .brandsub{font-size:11px;letter-spacing:2px;color:#F3A9AE;font-weight:700;margin-top:2px;}
+  .eyebrow{font-size:12px;letter-spacing:3px;text-transform:uppercase;font-weight:800;color:#F3A9AE;position:relative;}
+  h1{font-size:clamp(28px,4.6vw,44px);line-height:1.1;font-weight:800;margin:12px 0 12px;letter-spacing:-.5px;text-wrap:balance;position:relative;}
+  .lede{font-size:clamp(15px,1.6vw,17px);color:#C6D3DF;max-width:64ch;margin:0;position:relative;}
+
+  section{padding:42px 0 4px;}
+  .kicker{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;font-weight:800;color:var(--accent);}
+  h2{font-size:clamp(20px,2.8vw,26px);font-weight:800;margin:8px 0 6px;letter-spacing:-.3px;text-wrap:balance;}
+  .h2sub{color:var(--muted);font-size:14px;margin:0 0 22px;}
+  h3{font-size:16px;font-weight:800;margin:0;}
+
+  .personas{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:-30px;position:relative;z-index:3;}
+  .persona{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 14px 34px rgba(11,32,50,.12);}
+  .persona .role{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);}
+  .persona h3{margin:5px 0 6px;}
+  .persona p{margin:0;font-size:13px;color:var(--muted);}
+
+  /* Journey card */
+  .journey{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 22px 8px;margin-bottom:18px;}
+  .jhead{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px;}
+  .jnum{flex:0 0 auto;width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;}
+  .jtitle h3{font-size:17px;}
+  .jtitle .who{font-size:12px;color:var(--muted);margin-top:2px;}
+  .jtitle .who b{color:var(--ink);}
+  .steps{list-style:none;margin:12px 0 6px;padding:0;position:relative;}
+  .steps:before{content:"";position:absolute;left:15px;top:6px;bottom:22px;width:2px;background:var(--line);}
+  .steps li{position:relative;padding:0 0 14px 42px;font-size:14px;}
+  .steps li:before{content:"";position:absolute;left:9px;top:5px;width:14px;height:14px;border-radius:50%;background:var(--card);border:3px solid var(--accent);}
+  .steps li b{font-weight:700;}
+  .outcome{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-size:13px;margin:6px 0 14px;}
+  .outcome b{color:var(--good);}
+
+  .tscroll{overflow-x:auto;border-radius:12px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  th{background:var(--navy);color:#fff;text-align:left;padding:10px 14px;font-size:12.5px;font-weight:700;white-space:nowrap;}
+  td{padding:9px 14px;border-top:1px solid var(--line);vertical-align:top;}
+  td.m{color:var(--muted);}
+  .grp{background:var(--soft);font-weight:800;font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);}
+
+  .note{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:15px 18px;font-size:13px;color:var(--muted);margin-top:8px;}
+  .note b{color:var(--ink);}
+  footer{margin-top:34px;padding:24px 0 46px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;}
+
+  @media(max-width:720px){.personas{grid-template-columns:1fr;margin-top:16px;}}
+</style>
+
+<div class="top">
+  <div class="wrap">
+    <div class="brandrow">
+      <span class="logo"><svg width="30" height="30" viewBox="0 0 100 100"><defs><linearGradient id="g" x1="100%" y1="0" x2="0" y2="100%"><stop offset="0" stop-color="#F1583B"/><stop offset=".55" stop-color="#DA2824"/><stop offset="1" stop-color="#A81616"/></linearGradient></defs><circle cx="50" cy="50" r="50" fill="url(#g)"/><path d="M50 13C31 30 31 68 50 87 69 68 69 30 50 13Z" fill="#fff"/><path d="M50 17C44 40 44 60 50 83 56 60 56 40 50 17Z" fill="url(#g)"/></svg></span>
+      <div><div class="brandname">Bandhan Sahayak</div><div class="brandsub">AI VIRTUAL ASSISTANT</div></div>
+    </div>
+    <div class="eyebrow">User Journeys &amp; Use Cases</div>
+    <h1>How real customers move through the assistant — end to end.</h1>
+    <p class="lede">A walkthrough for client conversations: who the users are, the journeys they complete, and the full catalogue of use cases the assistant delivers today.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="personas">
+    <div class="persona"><div class="role">Persona A</div><h3>Prospective Visitor</h3><p>Not yet a customer. Exploring products, rates and eligibility — often on mobile, often in a regional language. Wants quick answers and an easy way to express interest.</p></div>
+    <div class="persona"><div class="role">Persona B</div><h3>Existing Customer</h3><p>Has an account, registered mobile and debit card. Wants to complete a service task fast — without a branch visit, a call, or the full net-banking portal.</p></div>
+  </div>
+
+  <section>
+    <div class="kicker">The Experience</div>
+    <h2>Seven signature journeys</h2>
+    <p class="h2sub">Each is a live, demonstrable flow. Numbers show the customer's steps in order.</p>
+
+    <div class="journey">
+      <div class="jhead"><div class="jnum">1</div><div class="jtitle"><h3>Discover a product &amp; express interest</h3><div class="who"><b>Prospective Visitor</b> · acquisition</div></div></div>
+      <ul class="steps">
+        <li>Lands on the bank site and opens the assistant from the floating button.</li>
+        <li>Asks <b>"What savings accounts do you offer?"</b> — gets a clear, table-formatted comparison drawn from the bank's own content.</li>
+        <li>Follows up on interest rates and eligibility; answers stay accurate and on-brand.</li>
+        <li>Says <b>"I want to open an account"</b> — the assistant captures name, mobile &amp; interest as a lead.</li>
+      </ul>
+      <div class="outcome"><b>Outcome:</b> a qualified lead captured 24×7, with the customer's questions already answered.</div>
+    </div>
+
+    <div class="journey">
+      <div class="jhead"><div class="jnum">2</div><div class="jtitle"><h3>Get help in my own language — by voice</h3><div class="who"><b>Either persona</b> · accessibility &amp; inclusion</div></div></div>
+      <ul class="steps">
+        <li>Selects <b>Hindi, Bengali, Marathi or Hinglish</b> before starting.</li>
+        <li>Taps the mic and <b>speaks</b> the question instead of typing.</li>
+        <li>The assistant replies in the same language, and <b>reads the answer aloud</b>.</li>
+        <li>Continues the conversation naturally, switching between voice and text.</li>
+      </ul>
+      <div class="outcome"><b>Outcome:</b> reaches customers underserved by English-only, text-only channels.</div>
+    </div>
+
+    <div class="journey">
+      <div class="jhead"><div class="jnum">3</div><div class="jtitle"><h3>Securely identify myself</h3><div class="who"><b>Existing Customer</b> · authentication</div></div></div>
+      <ul class="steps">
+        <li>Chooses <b>"Existing customer"</b>.</li>
+        <li>Enters registered mobile number.</li>
+        <li>Receives and enters an <b>OTP</b> to verify.</li>
+        <li>Enters the authenticated experience, greeted by name.</li>
+      </ul>
+      <div class="outcome"><b>Outcome:</b> a trusted, gated session before any sensitive action.</div>
+    </div>
+
+    <div class="journey">
+      <div class="jhead"><div class="jnum">4</div><div class="jtitle"><h3>Reset my debit-card PIN</h3><div class="who"><b>Existing Customer</b> · card servicing</div></div></div>
+      <ul class="steps">
+        <li>Opens <b>Self-service Banking</b> and picks the debit card (blocked/expired cards are declined).</li>
+        <li>Confirms identity with card expiry and an <b>OTP</b>.</li>
+        <li>Enters a new PIN twice on a <b>secure keypad</b> — never shown in the chat.</li>
+        <li>Receives success with a service reference number.</li>
+      </ul>
+      <div class="outcome"><b>Outcome:</b> an ATM/branch trip avoided; a common call-centre driver deflected.</div>
+    </div>
+
+    <div class="journey">
+      <div class="jhead"><div class="jnum">5</div><div class="jtitle"><h3>Add a payee &amp; send money</h3><div class="who"><b>Existing Customer</b> · payments</div></div></div>
+      <ul class="steps">
+        <li>Adds a beneficiary: name, account (entered twice), IFSC lookup, and an optional <b>name-match check</b>.</li>
+        <li>Confirms &amp; authorises with OTP; the payee enters a short <b>cooling period</b>.</li>
+        <li>Starts a transfer, picks the payee, enters the amount — balance &amp; limits are checked.</li>
+        <li>Reviews a summary, authorises with OTP, and receives a <b>UTR reference</b>.</li>
+      </ul>
+      <div class="outcome"><b>Outcome:</b> everyday payments completed in chat, with bank-grade safeguards.</div>
+    </div>
+
+    <div class="journey">
+      <div class="jhead"><div class="jnum">6</div><div class="jtitle"><h3>Open a deposit (FD / RD)</h3><div class="who"><b>Existing Customer</b> · investments</div></div></div>
+      <ul class="steps">
+        <li>Chooses Fixed or Recurring Deposit and a source account.</li>
+        <li>Views <b>live rates</b> (senior-citizen rate applied automatically) and picks a tenure.</li>
+        <li>Sees a <b>maturity preview</b> with amount, date and TDS/penalty disclosures.</li>
+        <li>Confirms with OTP and receives the new deposit account number and advice.</li>
+      </ul>
+      <div class="outcome"><b>Outcome:</b> surplus funds invested instantly — new balances, deepened relationship.</div>
+    </div>
+
+    <div class="journey">
+      <div class="jhead"><div class="jnum">7</div><div class="jtitle"><h3>Reach a human when needed</h3><div class="who"><b>Either persona</b> · escalation &amp; feedback</div></div></div>
+      <ul class="steps">
+        <li>Rates replies with a thumbs up/down as the conversation goes.</li>
+        <li>If the assistant senses it isn't helping, it <b>proactively offers</b> a representative.</li>
+        <li>Customer chooses to connect; the 24×7 helpline is surfaced.</li>
+      </ul>
+      <div class="outcome"><b>Outcome:</b> no dead ends — a graceful hand-off protects the experience.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">The Full Picture</div>
+    <h2>Use-case catalogue</h2>
+    <p class="h2sub">Everything the assistant delivers today, grouped by area.</p>
+    <div class="tscroll"><table>
+      <thead><tr><th>Use case</th><th>Who</th><th>Value to the bank</th></tr></thead>
+      <tbody>
+        <tr><td colspan="3" class="grp">Website &amp; engagement</td></tr>
+        <tr><td>Browse products, rates &amp; offers</td><td class="m">Visitor</td><td class="m">Discovery &amp; brand</td></tr>
+        <tr><td>Launch assistant; adjust text size</td><td class="m">Visitor</td><td class="m">Accessibility</td></tr>
+        <tr><td>Choose language before chatting</td><td class="m">Both</td><td class="m">Inclusion</td></tr>
+
+        <tr><td colspan="3" class="grp">Conversational assistance</td></tr>
+        <tr><td>Ask product / rate / policy questions (grounded)</td><td class="m">Both</td><td class="m">Call deflection</td></tr>
+        <tr><td>Compare products as a table</td><td class="m">Both</td><td class="m">Conversion</td></tr>
+        <tr><td>Branch / IFSC / helpline guidance</td><td class="m">Both</td><td class="m">Self-service</td></tr>
+        <tr><td>Capture a product lead</td><td class="m">Visitor</td><td class="m">Acquisition</td></tr>
+        <tr><td>Raise a complaint &amp; get a ticket</td><td class="m">Both</td><td class="m">Grievance handling</td></tr>
+        <tr><td>Converse in 5 languages · voice in &amp; out</td><td class="m">Both</td><td class="m">Reach &amp; CX</td></tr>
+        <tr><td>Rate answers; escalate to a human</td><td class="m">Both</td><td class="m">Quality &amp; safety-net</td></tr>
+
+        <tr><td colspan="3" class="grp">Identity &amp; account servicing</td></tr>
+        <tr><td>Verify via mobile + OTP; step-up OTP per action</td><td class="m">Customer</td><td class="m">Security</td></tr>
+        <tr><td>Check balance · recent transactions</td><td class="m">Customer</td><td class="m">Self-service</td></tr>
+        <tr><td>Check active loans · block a debit card</td><td class="m">Customer</td><td class="m">Servicing</td></tr>
+
+        <tr><td colspan="3" class="grp">Self-service banking (guided &amp; secure)</td></tr>
+        <tr><td>Set / reset debit-card PIN</td><td class="m">Customer</td><td class="m">Branch/ATM deflection</td></tr>
+        <tr><td>View / add / modify nominee</td><td class="m">Customer</td><td class="m">Compliance CX</td></tr>
+        <tr><td>Add / edit / delete beneficiaries</td><td class="m">Customer</td><td class="m">Enables payments</td></tr>
+        <tr><td>Transfer funds (own / payees)</td><td class="m">Customer</td><td class="m">Digital adoption</td></tr>
+        <tr><td>Open Fixed / Recurring Deposit</td><td class="m">Customer</td><td class="m">Balance growth</td></tr>
+
+        <tr><td colspan="3" class="grp">Built-in safeguards</td></tr>
+        <tr><td>Data masking · OTP lockout · idempotency</td><td class="m">System</td><td class="m">Trust &amp; risk</td></tr>
+        <tr><td>Cooling periods · channel limits · reference numbers</td><td class="m">System</td><td class="m">Compliance &amp; audit</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <div class="kicker">Good To Know</div>
+    <h2>Framing for the client</h2>
+    <div class="note"><b>Where it stands:</b> the assistant, multilingual voice, and all seven journeys are live and demonstrable today. The account-servicing and self-service journeys run against a demo core-banking layer, ready to connect to the bank's live systems during productionisation.
+    <br><br><b>Please note:</b> this is a working proof-of-concept. Rates, figures and the demo customer are illustrative; the security controls shown reflect the design intent and are finalised with the bank's compliance and engineering teams. <b>Not in v1:</b> new-account opening, ad-hoc transfers to unregistered accounts, UPI/bill-pay, and credit-card servicing.</div>
+  </section>
+
+  <footer>Bandhan Sahayak · User Journeys &amp; Use Cases · Prepared for client discussions by Applied Cloud Computing</footer>
+</div>
