@@ -12,6 +12,7 @@ import {
 } from "@fortawesome/free-brands-svg-icons";
 import BandhanChatbotDemo from "./BandhanChatbotDemo";
 import BandhanLogo from "./BandhanLogo";
+import OmnichannelDemos from "./OmnichannelDemos";
 
 // ---- Brand theme (Bandhan Bank site) --------------------------------------
 const RED = "#D91F2C";
@@ -65,6 +66,7 @@ export default function BandhanLandingPage() {
   const [slide, setSlide] = useState(0);
   const [fontScale, setFontScale] = useState(1);
   const [payOpen, setPayOpen] = useState(false);
+  const [omniOpen, setOmniOpen] = useState(false);
 
   // Auto-advance the hero carousel
   useEffect(() => {
@@ -93,11 +95,16 @@ export default function BandhanLandingPage() {
       `}</style>
 
       {/* ACCESSIBILITY BAR */}
-      <div style={{ background: NAVY, color: "#cddae6", fontSize: 12, padding: "4px 40px", display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12 }}>
-        <span style={{ opacity: .8 }}>Text size</span>
-        <button onClick={() => setFontScale(0.9)} title="Smaller text" style={aBtn(fontScale === 0.9)}><FontAwesomeIcon icon={faMinus} style={{ fontSize: 9 }} /> A</button>
-        <button onClick={() => setFontScale(1)} title="Default text" style={aBtn(fontScale === 1)}>A</button>
-        <button onClick={() => setFontScale(1.12)} title="Larger text" style={aBtn(fontScale === 1.12)}><FontAwesomeIcon icon={faPlus} style={{ fontSize: 9 }} /> A</button>
+      <div style={{ background: NAVY, color: "#cddae6", fontSize: 12, padding: "4px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <button onClick={() => setOmniOpen(true)} style={{ background: "transparent", border: "none", color: "#F3A9AE", fontWeight: 700, fontSize: 12, cursor: "pointer", fontFamily: "inherit", letterSpacing: ".3px" }}>
+          ✦ Omnichannel AI Demos
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ opacity: .8 }}>Text size</span>
+          <button onClick={() => setFontScale(0.9)} title="Smaller text" style={aBtn(fontScale === 0.9)}><FontAwesomeIcon icon={faMinus} style={{ fontSize: 9 }} /> A</button>
+          <button onClick={() => setFontScale(1)} title="Default text" style={aBtn(fontScale === 1)}>A</button>
+          <button onClick={() => setFontScale(1.12)} title="Larger text" style={aBtn(fontScale === 1.12)}><FontAwesomeIcon icon={faPlus} style={{ fontSize: 9 }} /> A</button>
+        </div>
       </div>
 
       {/* STICKY HEADER */}
@@ -299,6 +306,9 @@ export default function BandhanLandingPage() {
       <div className={`chat-popup ${chatOpen ? "open" : "closed"}`}>
         <BandhanChatbotDemo embedded />
       </div>
+
+      {/* OMNICHANNEL AI DEMOS */}
+      {omniOpen && <OmnichannelDemos onClose={() => setOmniOpen(false)} />}
     </div>
   );
 }
