@@ -18,6 +18,7 @@ const LANGUAGES = [
   { code: "en", label: "English", stt: "en-IN", tts: "en-IN" },
   { code: "hi", label: "हिंदी · Hindi", stt: "hi-IN", tts: "hi-IN" },
   { code: "bn", label: "বাংলা · Bengali", stt: "bn-IN", tts: "bn-IN" },
+  { code: "as", label: "অসমীয়া · Assamese", stt: "as-IN", tts: "as-IN" },
   { code: "mr", label: "मराठी · Marathi", stt: "mr-IN", tts: "mr-IN" },
   { code: "hinglish", label: "Hinglish", stt: "en-IN", tts: "hi-IN" },
 ];
@@ -30,6 +31,7 @@ const FONTS = {
   hi: { body: "'Noto Sans Devanagari', sans-serif", heading: "'Noto Sans Devanagari', sans-serif" },
   mr: { body: "'Noto Sans Devanagari', sans-serif", heading: "'Noto Sans Devanagari', sans-serif" },
   bn: { body: "'Noto Sans Bengali', sans-serif", heading: "'Noto Sans Bengali', sans-serif" },
+  as: { body: "'Noto Sans Bengali', sans-serif", heading: "'Noto Sans Bengali', sans-serif" },
 };
 
 // Name used in the LLM language instruction
@@ -37,6 +39,7 @@ const LANG_NAME = {
   en: "English",
   hi: "Hindi (हिंदी, in Devanagari script)",
   bn: "Bengali (বাংলা, in Bengali script)",
+  as: "Assamese (অসমীয়া, in the Bengali-Assamese/Eastern Nagari script — use Assamese letters ৰ and ৱ, not Bengali র/ব-form)",
   mr: "Marathi (मराठी, in Devanagari script)",
   hinglish: "Hinglish (Hindi written in Roman/English letters, e.g. 'aapka khata balance')",
 };
@@ -135,6 +138,37 @@ const T = {
     disclaimer: "ডেমো প্রোটোটাইপ · হার ও বিবরণ সূচক — bandhanbank.com-এ যাচাই করুন · বন্ধন ব্যাঙ্ক কখনও আপনার OTP, PIN বা CVV চায় না · ২৪x৭ হেল্পলাইন 1800 258 8181",
     logout: "লগ আউট", switchMode: "মোড পরিবর্তন করুন",
     servicesBtn: "সেল্ফ-সার্ভিস ব্যাংকিং",
+  },
+  as: {
+    tagline: "ভাৰ্চুৱেল এছিষ্টেণ্ট · ডেমো প্ৰট'টাইপ",
+    chooseLanguage: "অনুগ্ৰহ কৰি আপোনাৰ ভাষা বাছনি কৰক",
+    gateTitle: "আপুনি কেনেকৈ আৰম্ভ কৰিব বিচাৰে?",
+    gateSub: "এইটো Applied Cloud Computing-এ তৈয়াৰ কৰা এটা কাৰ্যক্ষম প্ৰট'টাইপ। কোনো প্ৰকৃত গ্ৰাহকৰ তথ্য ব্যৱহাৰ কৰা হোৱা নাই।",
+    newHere: "মই নতুন", newHereDesc: "একাউণ্ট, জমা, ঋণ আৰু কাৰ্ড চাওক",
+    existing: "বৰ্তমানৰ গ্ৰাহক", existingDesc: "ম'বাইল + OTP-ৰে সত্যাপন কৰক (ছিমুলেটেড)",
+    verifyTitle: "গ্ৰাহক সত্যাপন (ডেমো)",
+    mobileLabel: "পঞ্জীভুক্ত ম'বাইল নম্বৰ", mobilePlaceholder: "১০ সংখ্যাৰ ম'বাইল নম্বৰ",
+    sendOtp: "OTP পঠিয়াওক", otpLabel: "এই নম্বৰলৈ পঠোৱা OTP দিয়ক", otpPlaceholder: "৬ সংখ্যাৰ OTP (ডেমো: 123456)",
+    verifyBtn: "সত্যাপন কৰি আগবাঢ়ক",
+    mobileInvalid: "অনুগ্ৰহ কৰি এটা বৈধ ১০ সংখ্যাৰ ম'বাইল নম্বৰ দিয়ক।",
+    mobileNotReg: "এই ম'বাইল নম্বৰটো আমাৰ ওচৰত পঞ্জীভুক্ত নহয়। অনুগ্ৰহ কৰি আপোনাৰ পঞ্জীভুক্ত নম্বৰ ব্যৱহাৰ কৰক (ডেমো: 9920570592) অথবা ওচৰৰ শাখালৈ যাওক।",
+    otpIncorrect: "ভুল OTP। এই ডেমোৰ বাবে ইংগিত: 123456",
+    back: "← পিছলৈ",
+    greetVisitor: "নমস্কাৰ! মই বন্ধন সহায়ক, আপোনাৰ ভাৰ্চুৱেল এছিষ্টেণ্ট। মই আপোনাক আমাৰ সঞ্চয় একাউণ্ট, জমা, ঋণ, কাৰ্ড আৰু অধিক বিষয়ে ক'ব পাৰোঁ — অথবা এটা শাখা বিচাৰি উলিয়াবলৈ সহায় কৰিব পাৰোঁ। আজি মই আপোনাক কেনেকৈ সহায় কৰিব পাৰোঁ?",
+    greetAuth: "উভতি অহাত স্বাগতম, শ্ৰীযুত মিলিন্দ নায়কৰে! আপুনি সত্যাপিত হৈছে। মই আপোনাৰ সঞ্চয় একাউণ্টৰ বেলেন্স, শেহতীয়া লেনদেন, কাৰ্ড সেৱা, জমা বা অভিযোগত সহায় কৰিব পাৰোঁ। আপুনি কি কৰিব বিচাৰে?",
+    chipsVisitor: ["আপোনালোকে কোন সঞ্চয় একাউণ্ট আগবঢ়ায়?", "বৰ্তমানৰ FD সুতৰ হাৰ", "মই এটা সঞ্চয় একাউণ্টৰ বিষয়ে জানিব বিচাৰোঁ", "অনলাইনত একাউণ্ট খোলক", "মোৰ ওচৰৰ শাখা বিচাৰক"],
+    chipsAuth: ["মোৰ একাউণ্টৰ বেলেন্স কিমান?", "মোৰ শেষ ৫টা লেনদেন দেখুৱাওক", "মোৰ কোনো সক্ৰিয় ঋণ আছে নেকি?", "মোৰ ডেবিট কাৰ্ড ব্লক কৰক"],
+    placeholderVisitor: "সেৱা, হাৰ, শাখাৰ বিষয়ে সোধক…", placeholderAuth: "আপোনাৰ একাউণ্ট, কাৰ্ড বা ঋণৰ বিষয়ে সোধক…",
+    listening: "শুনি আছোঁ…",
+    feedbackLabel: "আপুনি এই উত্তৰত সন্তুষ্ট নেকি?", feedbackThanks: "আপোনাৰ মতামতৰ বাবে ধন্যবাদ।",
+    escalationQuestion: "যেন লাগিছে মই সহায় কৰিব পৰা নাই। আপুনি এজন গ্ৰাহক প্ৰতিনিধিৰ সৈতে সংযোগ কৰিব বিচাৰে, নে এই চেট চলাই থাকিব বিচাৰে?",
+    connectBtn: "প্ৰতিনিধিৰ সৈতে সংযোগ কৰক", continueBtn: "চেট চলাই থাকক",
+    continueReply: "নিশ্চয়! আহক আগবাঢ়োঁ। মই কেনেকৈ সহায় কৰিব পাৰোঁ?",
+    escalationTitle: "প্ৰতিনিধিৰ সৈতে সংযোগ কৰক", escalationBody: "আমাৰ গ্ৰাহক সেৱা দল আপোনাক সহায় কৰিবলৈ ২৪x৭ উপলব্ধ।",
+    callPrefix: "কল কৰক",
+    disclaimer: "ডেমো প্ৰট'টাইপ · হাৰ আৰু বিৱৰণ সূচক — bandhanbank.com-ত সত্যাপন কৰক · বন্ধন বেংকে কেতিয়াও আপোনাৰ OTP, PIN বা CVV নিবিচাৰে · ২৪x৭ হেল্পলাইন 1800 258 8181",
+    logout: "লগ আউট", switchMode: "ম'ড সলনি কৰক",
+    servicesBtn: "ছেল্ফ-চাৰ্ভিচ বেংকিং",
   },
   mr: {
     tagline: "व्हर्च्युअल असिस्टंट · डेमो प्रोटोटाइप",
@@ -276,7 +310,7 @@ const STT_SUPPORTED = typeof window !== "undefined" && !!(window.SpeechRecogniti
 
 // Pick a TTS language from the script of the reply text (multilingual output)
 const detectTtsLang = (text, langCode) => {
-  if (/[ঀ-৿]/.test(text)) return "bn-IN";                          // Bengali script
+  if (/[ঀ-৿]/.test(text)) return langCode === "as" ? "as-IN" : "bn-IN";   // Bengali-Assamese script
   if (/[ऀ-ॿ]/.test(text)) return langCode === "mr" ? "mr-IN" : "hi-IN"; // Devanagari (Hindi / Marathi)
   return "en-IN";                                                              // Latin (English / Hinglish)
 };

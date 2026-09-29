@@ -2,6 +2,9 @@
 const VOICE_MAP = {
   "hi-IN": { languageCode: "hi-IN", name: "hi-IN-Neural2-B" },
   "bn-IN": { languageCode: "bn-IN", name: "bn-IN-Wavenet-B" },
+  // Google has no dedicated Assamese TTS voice yet; the Bengali-Assamese script
+  // is shared, so we use the Bengali neural voice as a close phonetic fallback.
+  "as-IN": { languageCode: "bn-IN", name: "bn-IN-Wavenet-B" },
   "mr-IN": { languageCode: "mr-IN", name: "mr-IN-Wavenet-B" },
   "en-IN": { languageCode: "en-IN", name: "en-IN-Neural2-B" },
 };
