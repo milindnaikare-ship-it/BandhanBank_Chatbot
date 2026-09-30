@@ -307,6 +307,7 @@ Address him by name (Mr. Naikare or Milind) naturally but not in every message.
 `;
 
 const STT_SUPPORTED = typeof window !== "undefined" && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+const SYNTH_SUPPORTED = typeof window !== "undefined" && "speechSynthesis" in window;
 
 // Pick a TTS language from the script of the reply text (multilingual output)
 const detectTtsLang = (text, langCode) => {
@@ -418,6 +419,23 @@ export default function BandhanChatbotDemo({ embedded = false }) {
     setSpeakingIdx(null);
   };
 
+  // Speak one sentence with the browser's built-in voice — used as a fallback
+  // when the Google TTS API is unavailable (e.g. no GOOGLE_TTS_API_KEY set).
+  const browserSpeak = (text, langCode, idx, seq, done) => {
+    if (!SYNTH_SUPPORTED || seq !== speechSeqRef.current) { done(); return; }
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = langCode;
+      setSpeakingIdx(idx);
+      u.onend = done;
+      u.onerror = done;
+      // shim so stopSpeaking() can cancel synth via currentAudioRef.pause()
+      currentAudioRef.current = { pause: () => { try { window.speechSynthesis.cancel(); } catch { /* noop */ } } };
+      window.speechSynthesis.speak(u);
+    } catch { done(); }
+  };
+
   // Fetch one sentence's audio (starts immediately for prefetch) then chain playback in order.
   const enqueueSpeech = (sentence, idx, seq) => {
     const clean = stripForSpeech(sentence);
@@ -435,14 +453,21 @@ export default function BandhanChatbotDemo({ embedded = false }) {
     audioChainRef.current = audioChainRef.current.then(
       () =>
         new Promise((resolve) => {
+          let settled = false;
+          const finish = () => { if (!settled) { settled = true; resolve(); } };
           audioP.then((audioContent) => {
-            if (seq !== speechSeqRef.current || !audioContent) return resolve();
-            const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
-            currentAudioRef.current = audio;
-            setSpeakingIdx(idx);
-            audio.onended = resolve;
-            audio.onerror = resolve;
-            audio.play().catch(() => resolve());
+            if (seq !== speechSeqRef.current) return finish();
+            if (audioContent) {
+              const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+              currentAudioRef.current = audio;
+              setSpeakingIdx(idx);
+              audio.onended = finish;
+              audio.onerror = () => browserSpeak(clean, langCode, idx, seq, finish);
+              audio.play().catch(() => browserSpeak(clean, langCode, idx, seq, finish));
+            } else {
+              // Google TTS unavailable → fall back to the browser voice.
+              browserSpeak(clean, langCode, idx, seq, finish);
+            }
           });
         })
     );
